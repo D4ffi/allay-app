@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronRight, ChevronLeft, Plus, Search, Pin, Filter, Settings2 } from 'lucide-react';
 import { ToolTip } from './ToolTip';
-import { AddServermodel } from '../modals/addServermodel.tsx';
+import { Modal } from './Modal';
 import { Dropdown } from './Dropdown';
 import { RadioGroup } from './RadioGroup';
 import { ChangeServerImg } from './ChangeServerImg';
@@ -223,7 +223,7 @@ export const ActionBar = () => {
                 </ToolTip>
             </div>
 
-            <AddServermodel
+            <Modal
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 title="Create Server"
@@ -323,7 +323,7 @@ export const ActionBar = () => {
                     </div>
 
                 </div>
-            </AddServermodel>
+            </Modal>
         </div>
     );
 }

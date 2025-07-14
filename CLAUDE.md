@@ -27,9 +27,15 @@ This is "Allay" - a dedicated Minecraft server management application built with
 - `/src/` - React/TypeScript frontend code
   - `/components/` - Reusable React components
     - `/common/` - Shared UI components
-      - `AllayLayout.tsx` - Main application layout wrapper
-      - `ActionBar.tsx` - Expandable action bar with animated buttons
+      - `AllayLayout.tsx` - Main application layout wrapper with window controls
+      - `ActionBar.tsx` - Expandable action bar with modal integration
       - `ToolTip.tsx` - Reusable tooltip component with positioning options
+      - `Dropdown.tsx` - Custom dropdown with ChevronDown icon
+      - `RadioGroup.tsx` - Flexible radio button group component
+      - `ChangeServerImg.tsx` - Image selector with file validation
+      - `Modal.tsx` - Generic modal component for all modal needs
+  - `/hooks/` - Custom React hooks
+    - `useWindowControls.ts` - Window control functions (minimize, maximize, close)
   - `/pages/` - Page-level components (currently has Home.tsx)
   - `App.tsx` - Main application component
   - `main.tsx` - React app entry point
@@ -64,15 +70,144 @@ This is "Allay" - a dedicated Minecraft server management application built with
 - Features smooth expand/collapse animation with configurable timing
 - Includes tooltips for each action button
 - Uses `pointer-events-none` to prevent interaction with hidden buttons
+- Integrates with Modal system for server creation workflow
 
 ### ToolTip
 - Reusable tooltip component with multiple positioning options (top, bottom, left, right)
 - Configurable delay before showing/hiding
 - Automatically hides when content changes to prevent display issues
 - Uses absolute positioning with transform utilities for precise placement
+- Used throughout UI for enhanced accessibility
+
+### Modal System
+- **Modal.tsx** - Generic modal component for all modal needs
+- Responsive design with configurable sizes (sm, md, lg, xl)
+- Overlay with click-outside-to-close functionality
+- Smooth animations with fade-in and zoom effects
+- Header with title and close button with tooltip
+- Completely reusable for any modal content
+
+### Form Components
+
+#### Dropdown
+- Custom dropdown component with ChevronDown icon
+- Supports keyboard navigation and accessibility
+- Click-outside-to-close functionality
+- Multiple size options and error handling
+- Smooth animations for open/close states
+
+#### RadioGroup
+- Flexible radio button group component
+- Multiple layout options: vertical, horizontal, grid
+- Visual feedback with hover and selected states
+- Support for descriptions on each option
+- Custom styled radio buttons with animations
+
+#### ChangeServerImg
+- Image selector component with default profile.png
+- Click-to-change functionality (no separate button needed)
+- File validation (image types only, max 5MB)
+- Preview functionality with URL.createObjectURL
+- Reset button with stopPropagation to prevent conflicts
+- Hover overlay with "Click to change" message
+
+### Server Creation Modal
+- Complete workflow for Minecraft server creation
+- **Server Icon**: ChangeServerImg component for custom server images
+- **Server Name**: Text input field
+- **Minecraft Version**: Dropdown with 10+ versions (1.21.1 to 1.16.5)
+- **Mod Loader Selection**: RadioGroup with 6 options:
+  - Vanilla (pure Minecraft)
+  - Fabric (lightweight modding)
+  - Forge (most popular modding platform)
+  - NeoForge (modern Forge fork)
+  - Paper (high-performance server software)
+  - Quilt (community-driven Fabric fork)
+- **Mod Loader Version**: Conditional dropdown that appears only when:
+  - Minecraft version is selected AND
+  - Non-vanilla mod loader is selected
+- **Action Buttons**: Done/Cancel with proper state management
+
+### Modal State Management
+- Auto-reset functionality: all form fields reset when modal closes
+- Conditional UI: mod loader versions only show when relevant
+- Form validation and error handling
+- State synchronization between parent and child components
+
+## Technical Implementation Details
+
+### Animation System
+- Consistent timing across components (200-300ms transitions)
+- Staggered animations in ActionBar for professional feel
+- Hover effects with smooth scaling and color transitions
+- Focus rings for accessibility compliance
+
+### Event Handling
+- `stopPropagation()` used to prevent event conflicts
+- Click-outside handlers for dropdowns and modals
+- Keyboard navigation support in form components
+- Touch events support for mobile compatibility
+
+### Data Structures
+- Minecraft versions with value/label pairs
+- Mod loader options with descriptions
+- Version mappings for each mod loader type
+- File handling for image uploads with validation
+
+### Styling Patterns
+- Consistent color scheme (grays, blues for primary actions)
+- Tailwind CSS utility classes for rapid development
+- Responsive design principles
+- Consistent spacing and typography scale
+
+## Component Relationships
+
+### AllayLayout Integration
+- Contains window controls (minimize, maximize, close) with tooltips
+- Uses `useWindowControls` hook for Tauri window management
+- Includes drag area for window movement
+- Houses application logo and title
+
+### ActionBar → Modal Flow
+1. ActionBar contains expandable buttons with tooltips
+2. "Create" button opens Modal with server creation content
+3. Modal contains complete server creation workflow
+4. Form state resets automatically on modal close
+5. Done/Cancel buttons handle form submission/cancellation
+
+### Form Component Chain
+1. ChangeServerImg → File selection and preview
+2. Text input → Server name
+3. Dropdown → Minecraft version selection
+4. RadioGroup → Mod loader type selection
+5. Conditional Dropdown → Mod loader version (only if needed)
+6. Action buttons → Form submission
+
+## Development Patterns
+
+### State Management
+- Local state with useState for form data
+- Custom hooks for complex logic (useWindowControls)
+- Event handlers with proper cleanup (useEffect)
+- Conditional rendering based on form state
+
+### File Organization
+- Components grouped by functionality (/common, /modals)
+- Reusable components in /common
+- Specific-purpose components in dedicated folders
+- Custom hooks in /hooks directory
+
+### Accessibility Features
+- Tooltips throughout the interface
+- Focus rings on interactive elements
+- Keyboard navigation support
+- ARIA labels where needed
+- Proper semantic HTML structure
 
 ## Key Files
 - `package.json` - Frontend dependencies and npm scripts
 - `src-tauri/Cargo.toml` - Rust dependencies (lib name: `allay_app_lib`)
+- `src-tauri/tauri.conf.json` - App configuration including custom icons
 - `vite.config.ts` - Vite configuration optimized for Tauri development
 - `tsconfig.json` - TypeScript configuration with strict settings
+- `CLAUDE.md` - Project documentation and development guidelines
