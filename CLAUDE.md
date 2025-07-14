@@ -34,6 +34,8 @@ This is "Allay" - a dedicated Minecraft server management application built with
       - `RadioGroup.tsx` - Flexible radio button group component
       - `ChangeServerImg.tsx` - Image selector with file validation
       - `Modal.tsx` - Generic modal component for all modal needs
+    - `/modals/` - Specific modal implementations
+      - `CreateServerModal.tsx` - Server creation modal with complete workflow
   - `/hooks/` - Custom React hooks
     - `useWindowControls.ts` - Window control functions (minimize, maximize, close)
   - `/pages/` - Page-level components (currently has Home.tsx)
@@ -170,10 +172,11 @@ This is "Allay" - a dedicated Minecraft server management application built with
 
 ### ActionBar → Modal Flow
 1. ActionBar contains expandable buttons with tooltips
-2. "Create" button opens Modal with server creation content
-3. Modal contains complete server creation workflow
-4. Form state resets automatically on modal close
-5. Done/Cancel buttons handle form submission/cancellation
+2. "Create" button opens CreateServerModal component
+3. CreateServerModal uses generic Modal component as base
+4. Form state management is self-contained within CreateServerModal
+5. Auto-reset functionality on modal close/submit
+6. Clean separation of concerns between UI trigger and modal logic
 
 ### Form Component Chain
 1. ChangeServerImg → File selection and preview
@@ -192,10 +195,11 @@ This is "Allay" - a dedicated Minecraft server management application built with
 - Conditional rendering based on form state
 
 ### File Organization
-- Components grouped by functionality (/common, /modals)
-- Reusable components in /common
-- Specific-purpose components in dedicated folders
-- Custom hooks in /hooks directory
+- **Components grouped by functionality**: `/common`, `/modals`, `/hooks`
+- **Reusable components in `/common`**: Modal, Dropdown, RadioGroup, etc.
+- **Specific modal implementations in `/modals`**: CreateServerModal, future modals
+- **Custom hooks in `/hooks`**: useWindowControls, future custom logic
+- **Clean separation**: UI logic vs business logic vs presentation components
 
 ### Accessibility Features
 - Tooltips throughout the interface
