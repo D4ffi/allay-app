@@ -3,7 +3,7 @@ import {ActionBar} from "../components/common/ActionBar.tsx";
 
 const Home = () => {
   return (
-    <div className="h-screen pt-12">
+    <div className="h-screen pt-8">
       <AllayLayout />
       <ActionBar />
 
