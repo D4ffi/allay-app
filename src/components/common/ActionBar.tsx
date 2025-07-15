@@ -3,7 +3,11 @@ import { ChevronRight, ChevronLeft, Plus, Search, Pin, Filter, Settings2 } from 
 import { ToolTip } from './ToolTip';
 import { CreateServerModal } from '../modals/CreateServerModal';
 
-export const ActionBar = () => {
+interface ActionBarProps {
+    onCreateServer: (serverData: any) => void;
+}
+
+export const ActionBar = ({ onCreateServer }: ActionBarProps) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -84,7 +88,8 @@ export const ActionBar = () => {
 
             <CreateServerModal 
                 isOpen={isModalOpen} 
-                onClose={() => setIsModalOpen(false)} 
+                onClose={() => setIsModalOpen(false)}
+                onCreateServer={onCreateServer}
             />
         </div>
     );

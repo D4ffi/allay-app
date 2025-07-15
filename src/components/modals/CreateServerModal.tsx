@@ -7,13 +7,15 @@ import { ChangeServerImg } from '../common/ChangeServerImg';
 interface CreateServerModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onCreateServer: (serverData: any) => void;
 }
 
-export const CreateServerModal = ({ isOpen, onClose }: CreateServerModalProps) => {
+export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateServerModalProps) => {
     const [selectedVersion, setSelectedVersion] = useState('');
     const [selectedModLoader, setSelectedModLoader] = useState('');
     const [selectedModLoaderVersion, setSelectedModLoaderVersion] = useState('');
     const [serverImage, setServerImage] = useState<File | null>(null);
+    const [serverName, setServerName] = useState('');
 
     // Opciones de versiones de Minecraft
     const minecraftVersions = [
@@ -140,6 +142,7 @@ export const CreateServerModal = ({ isOpen, onClose }: CreateServerModalProps) =
         setSelectedModLoader('');
         setSelectedModLoaderVersion('');
         setServerImage(null);
+        setServerName('');
     };
 
     // Función para cerrar el modal y resetear opciones
@@ -149,13 +152,49 @@ export const CreateServerModal = ({ isOpen, onClose }: CreateServerModalProps) =
     };
 
     const handleCreateServer = () => {
-        // Aquí iría la lógica para crear el servidor
-        console.log('Creating server:', {
+        // Validar que todos los campos requeridos estén llenos
+        if (!serverName.trim()) {
+            alert('Please enter a server name');
+            return;
+        }
+        
+        if (!selectedVersion) {
+            alert('Please select a Minecraft version');
+            return;
+        }
+        
+        if (!selectedModLoader) {
+            alert('Please select a mod loader');
+            return;
+        }
+        
+        if (selectedModLoader !== 'vanilla' && !selectedModLoaderVersion) {
+            alert('Please select a mod loader version');
+            return;
+        }
+        
+        // Crear el objeto servidor
+        const newServer = {
+            name: serverName.trim(),
+            description: `${selectedModLoader.charAt(0).toUpperCase() + selectedModLoader.slice(1)} server running Minecraft ${selectedVersion}`,
+            hasCustomImg: serverImage !== null,
+            imgUrl: serverImage ? URL.createObjectURL(serverImage) : '',
             version: selectedVersion,
-            modLoader: selectedModLoader,
-            modLoaderVersion: selectedModLoaderVersion,
-            serverImage: serverImage
-        });
+            serverType: selectedModLoader,
+            loaderVersion: selectedModLoaderVersion || '',
+            isOnline: false,
+            playerCount: 0,
+            maxPlayers: 20
+        };
+        
+        console.log('Creating server:', newServer);
+        
+        // Llamar a la función del padre para agregar el servidor
+        onCreateServer(newServer);
+        
+        // TODO: Aquí llamar al backend para crear el servidor
+        // await invoke('create_server', { server: newServer });
+        
         closeModal();
     };
 
@@ -188,6 +227,8 @@ export const CreateServerModal = ({ isOpen, onClose }: CreateServerModalProps) =
                     <input
                         type="text"
                         placeholder="My awesome server"
+                        value={serverName}
+                        onChange={(e) => setServerName(e.target.value)}
                         className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent w-full"
                     />
                 </div>
