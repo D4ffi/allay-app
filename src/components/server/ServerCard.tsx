@@ -1,4 +1,6 @@
 import React from "react";
+import { Play, Square, Edit, Folder, Trash2 } from 'lucide-react';
+import { ContextMenu } from '../common/ContextMenu';
 
 interface ServerCardProps {
     name: string;
@@ -11,6 +13,10 @@ interface ServerCardProps {
     isOnline?: boolean;
     playerCount?: number;
     maxPlayers?: number;
+    onStartStop?: () => void;
+    onEdit?: () => void;
+    onOpenFolder?: () => void;
+    onDelete?: () => void;
 }
 
 export const ServerCard: React.FC<ServerCardProps> = ({
@@ -23,10 +29,39 @@ export const ServerCard: React.FC<ServerCardProps> = ({
     loaderVersion,
     isOnline = false,
     playerCount = 0,
-    maxPlayers = 20
+    maxPlayers = 20,
+    onStartStop,
+    onEdit,
+    onOpenFolder,
+    onDelete
 }) => {
+    const contextMenuItems = [
+        {
+            label: isOnline ? 'Stop Server' : 'Start Server',
+            icon: isOnline ? Square : Play,
+            onClick: () => onStartStop?.(),
+        },
+        {
+            label: 'Edit Server',
+            icon: Edit,
+            onClick: () => onEdit?.(),
+        },
+        {
+            label: 'Open in File Explorer',
+            icon: Folder,
+            onClick: () => onOpenFolder?.(),
+        },
+        {
+            label: 'Delete Server',
+            icon: Trash2,
+            onClick: () => onDelete?.(),
+            destructive: true,
+        },
+    ];
+
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+        <ContextMenu items={contextMenuItems}>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4 cursor-pointer">
             <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-4">
                     {/* Server Icon */}
@@ -76,6 +111,7 @@ export const ServerCard: React.FC<ServerCardProps> = ({
                     </span>
                 </div>
             </div>
-        </div>
+            </div>
+        </ContextMenu>
     );
 };

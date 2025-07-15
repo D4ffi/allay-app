@@ -28,6 +28,33 @@ const Home = () => {
         setServers(prev => [...prev, newServer]);
     };
 
+    const handleStartStopServer = (serverId: string) => {
+        setServers(prev => prev.map(server => 
+            server.id === serverId 
+                ? { ...server, isOnline: !server.isOnline }
+                : server
+        ));
+        console.log(`${servers.find(s => s.id === serverId)?.isOnline ? 'Stopping' : 'Starting'} server:`, serverId);
+    };
+
+    const handleEditServer = (serverId: string) => {
+        console.log('Edit server:', serverId);
+        // TODO: Implement edit functionality
+    };
+
+    const handleOpenFolder = (serverId: string) => {
+        console.log('Open folder for server:', serverId);
+        // TODO: Implement file explorer opening
+    };
+
+    const handleDeleteServer = (serverId: string) => {
+        const server = servers.find(s => s.id === serverId);
+        if (server && confirm(`Are you sure you want to delete "${server.name}"?`)) {
+            setServers(prev => prev.filter(server => server.id !== serverId));
+            console.log('Deleted server:', serverId);
+        }
+    };
+
     return (
         <div className="h-screen pt-8">
             <AllayLayout />
@@ -56,6 +83,10 @@ const Home = () => {
                             isOnline={server.isOnline}
                             playerCount={server.playerCount}
                             maxPlayers={server.maxPlayers}
+                            onStartStop={() => handleStartStopServer(server.id)}
+                            onEdit={() => handleEditServer(server.id)}
+                            onOpenFolder={() => handleOpenFolder(server.id)}
+                            onDelete={() => handleDeleteServer(server.id)}
                         />
                     ))}
                 </div>

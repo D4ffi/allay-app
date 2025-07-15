@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, ChevronLeft, Plus, Search, Pin, Filter, Settings2 } from 'lucide-react';
+import {ChevronRight, ChevronLeft, Plus, Search, Settings2, SquareMousePointer} from 'lucide-react';
 import { ToolTip } from './ToolTip';
 import { CreateServerModal } from '../modals/CreateServerModal';
 
@@ -17,9 +17,8 @@ export const ActionBar = ({ onCreateServer }: ActionBarProps) => {
 
     const actionIcons = [
         { icon: Plus, delay: ICON_DELAY * 0.7, tooltip: "Create", onClick: () => setIsModalOpen(true) },
-        { icon: Search, delay: ICON_DELAY * 0.65, tooltip: "Search", onClick: () => {} },
-        { icon: Pin, delay: ICON_DELAY * 0.6, tooltip: "Pin", onClick: () => {} },
-        { icon: Filter, delay: ICON_DELAY * 0.55, tooltip: "Filter", onClick: () => {} },
+        { icon: SquareMousePointer, delay: ICON_DELAY * 0.65, tooltip: "Edit", onClick: () => {} },
+        { icon: Search, delay: ICON_DELAY * 0.6, tooltip: "Search", onClick: () => {} },
         { icon: Settings2, delay: ICON_DELAY * 0.5, tooltip: "Settings", onClick: () => {}}
     ];
 
