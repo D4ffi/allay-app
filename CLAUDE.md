@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is "Allay" - a dedicated Minecraft server management application built with Tauri (Rust backend + React/TypeScript frontend). The project uses Vite for frontend tooling and TailwindCSS for styling.
+This is "Allay"—a dedicated Minecraft server management application built with Tauri (Rust backend + React/TypeScript frontend). The project uses Vite for frontend tooling and TailwindCSS for styling.
 
 ## Development Commands
 
 ### Frontend Development
 - `npm run dev` - Start Vite development server (frontend only)
-- `npm run build` - Build TypeScript and create production bundle
+- `npm run build` - Build TypeScript and create a production bundle
 - `npm run preview` - Preview production build
 
 ### Tauri Development
@@ -54,25 +54,25 @@ This is "Allay" - a dedicated Minecraft server management application built with
 
 ### Technology Stack
 - **Frontend**: React 18, TypeScript, TailwindCSS, Vite
-- **Backend**: Rust with Tauri framework
+- **Backend**: Rust with a Tauri framework
 - **Bundling**: Vite (frontend), Tauri (application packaging)
 - **Styling**: TailwindCSS with Vite plugin
 
 ### Development Configuration
 - Frontend dev server runs on port 1420
-- HMR (Hot Module Reload) on port 1421 when using custom host
+- HMR (Hot Module Reload) on port 1421 when using a custom host
 - Tauri watches for frontend changes and rebuilds accordingly
-- TypeScript strict mode enabled with comprehensive linting rules
+- TypeScript strict mode is enabled with comprehensive linting rules
 
 ## Components
 
 ### ActionBar
-- Expandable action bar component located in top-left corner
+- Expandable action bar component located in the top-left corner
 - Contains animated buttons for Create, Search, Pin, Filter, and Settings actions
 - Features smooth expand/collapse animation with configurable timing
 - Includes tooltips for each action button
 - Uses `pointer-events-none` to prevent interaction with hidden buttons
-- Integrates with Modal system for server creation workflow
+- Integrates with a Modal system for server creation workflow
 
 ### ToolTip
 - Reusable tooltip component with multiple positioning options (top, bottom, left, right)
@@ -111,14 +111,14 @@ This is "Allay" - a dedicated Minecraft server management application built with
 - File validation (image types only, max 5MB)
 - Preview functionality with URL.createObjectURL
 - Reset button with stopPropagation to prevent conflicts
-- Hover overlay with "Click to change" message
+- Hover overlay with the "Click to change" message
 
 ### Server Creation Modal
 - Complete workflow for Minecraft server creation
 - **Server Icon**: ChangeServerImg component for custom server images
 - **Server Name**: Text input field
 - **Minecraft Version**: Dropdown with 10+ versions (1.21.1 to 1.16.5)
-- **Mod Loader Selection**: RadioGroup with 6 options:
+- **Mod Loader Selection**: RadioGroup with six options:
   - Vanilla (pure Minecraft)
   - Fabric (lightweight modding)
   - Forge (most popular modding platform)
@@ -139,8 +139,8 @@ This is "Allay" - a dedicated Minecraft server management application built with
 ## Technical Implementation Details
 
 ### Animation System
-- Consistent timing across components (200-300ms transitions)
-- Staggered animations in ActionBar for professional feel
+- Consistent timing across components (200–300 ms transitions)
+- Staggered animations in ActionBar for a professional feel
 - Hover effects with smooth scaling and color transitions
 - Focus rings for accessibility compliance
 
@@ -167,15 +167,15 @@ This is "Allay" - a dedicated Minecraft server management application built with
 ### AllayLayout Integration
 - Contains window controls (minimize, maximize, close) with tooltips
 - Uses `useWindowControls` hook for Tauri window management
-- Includes drag area for window movement
+- Includes a drag area for window movement
 - Houses application logo and title
 
 ### ActionBar → Modal Flow
 1. ActionBar contains expandable buttons with tooltips
 2. "Create" button opens CreateServerModal component
-3. CreateServerModal uses generic Modal component as base
+3. CreateServerModal uses a generic Modal component as base
 4. Form state management is self-contained within CreateServerModal
-5. Auto-reset functionality on modal close/submit
+5. Auto-reset functionality on modal close/submitting
 6. Clean separation of concerns between UI trigger and modal logic
 
 ### Form Component Chain
