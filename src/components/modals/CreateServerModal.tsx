@@ -3,6 +3,7 @@ import { Modal } from '../common/Modal';
 import { Dropdown } from '../common/Dropdown';
 import { RadioGroup } from '../common/RadioGroup';
 import { ChangeServerImg } from '../common/ChangeServerImg';
+import { invoke } from '@tauri-apps/api/core';
 
 interface CreateServerModalProps {
     isOpen: boolean;
@@ -151,7 +152,7 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
         resetModalOptions();
     };
 
-    const handleCreateServer = () => {
+    const handleCreateServer = async () => {
         // Validar que todos los campos requeridos estén llenos
         if (!serverName.trim()) {
             alert('Please enter a server name');
@@ -173,29 +174,39 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
             return;
         }
         
-        // Crear el objeto servidor
-        const newServer = {
-            name: serverName.trim(),
-            description: `${selectedModLoader.charAt(0).toUpperCase() + selectedModLoader.slice(1)} server running Minecraft ${selectedVersion}`,
-            hasCustomImg: serverImage !== null,
-            imgUrl: serverImage ? URL.createObjectURL(serverImage) : '',
-            version: selectedVersion,
-            serverType: selectedModLoader,
-            loaderVersion: selectedModLoaderVersion || '',
-            isOnline: false,
-            playerCount: 0,
-            maxPlayers: 20
-        };
-        
-        console.log('Creating server:', newServer);
-        
-        // Llamar a la función del padre para agregar el servidor
-        onCreateServer(newServer);
-        
-        // TODO: Aquí llamar al backend para crear el servidor
-        // await invoke('create_server', { server: newServer });
-        
-        closeModal();
+        try {
+            // Crear la instancia del servidor en el backend
+            const result = await invoke('create_server_instance', {
+                name: serverName.trim(),
+                version: selectedVersion,
+                modLoader: selectedModLoader,
+                modLoaderVersion: selectedModLoaderVersion || 'none'
+            });
+            
+            console.log('Server created:', result);
+            
+            // Crear el objeto servidor para el frontend
+            const newServer = {
+                name: serverName.trim(),
+                description: `${selectedModLoader.charAt(0).toUpperCase() + selectedModLoader.slice(1)} server running Minecraft ${selectedVersion}`,
+                hasCustomImg: serverImage !== null,
+                imgUrl: serverImage ? URL.createObjectURL(serverImage) : '',
+                version: selectedVersion,
+                serverType: selectedModLoader,
+                loaderVersion: selectedModLoaderVersion || '',
+                isOnline: false,
+                playerCount: 0,
+                maxPlayers: 20
+            };
+            
+            // Llamar a la función del padre para agregar el servidor
+            onCreateServer(newServer);
+            
+            closeModal();
+        } catch (error) {
+            console.error('Error creating server:', error);
+            alert(`Error creating server: ${error}`);
+        }
     };
 
     return (

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {AllayLayout} from "../components/common/AllayLayout.tsx";
 import {ActionBar} from "../components/common/ActionBar.tsx";
 import { ServerCard } from "../components/server/ServerCard.tsx";
+import { invoke } from '@tauri-apps/api/core';
 
 interface Server {
     id: string;
@@ -17,15 +18,47 @@ interface Server {
     maxPlayers: number;
 }
 
+interface ServerInstance {
+    name: string;
+    version: string;
+    mod_loader: string;
+    mod_loader_version: string;
+    storage_path: string;
+}
+
 const Home = () => {
     const [servers, setServers] = useState<Server[]>([]);
 
+    // Cargar servidores desde el JSON al montar el componente
+    useEffect(() => {
+        loadServersFromJSON();
+    }, []);
+
+    const loadServersFromJSON = async () => {
+        try {
+            const instances: ServerInstance[] = await invoke('get_all_server_instances');
+            const serverList: Server[] = instances.map((instance, index) => ({
+                id: instance.name, // Usar el nombre como ID único
+                name: instance.name,
+                description: `${instance.mod_loader.charAt(0).toUpperCase() + instance.mod_loader.slice(1)} server running Minecraft ${instance.version}`,
+                hasCustomImg: false, // Por ahora sin imagen personalizada
+                imgUrl: '',
+                version: instance.version,
+                serverType: instance.mod_loader,
+                loaderVersion: instance.mod_loader_version,
+                isOnline: false,
+                playerCount: 0,
+                maxPlayers: 20
+            }));
+            setServers(serverList);
+        } catch (error) {
+            console.error('Error loading servers from JSON:', error);
+        }
+    };
+
     const handleCreateServer = (serverData: Omit<Server, 'id'>) => {
-        const newServer: Server = {
-            ...serverData,
-            id: Date.now().toString() // Simple ID generation
-        };
-        setServers(prev => [...prev, newServer]);
+        // Recargar servidores desde el JSON después de crear uno nuevo
+        loadServersFromJSON();
     };
 
     const handleStartStopServer = (serverId: string) => {
@@ -47,11 +80,18 @@ const Home = () => {
         // TODO: Implement file explorer opening
     };
 
-    const handleDeleteServer = (serverId: string) => {
+    const handleDeleteServer = async (serverId: string) => {
         const server = servers.find(s => s.id === serverId);
         if (server && confirm(`Are you sure you want to delete "${server.name}"?`)) {
-            setServers(prev => prev.filter(server => server.id !== serverId));
-            console.log('Deleted server:', serverId);
+            try {
+                await invoke('remove_server_instance', { name: server.name });
+                // Recargar servidores desde el JSON después de eliminar
+                loadServersFromJSON();
+                console.log('Deleted server:', serverId);
+            } catch (error) {
+                console.error('Error deleting server:', error);
+                alert(`Error deleting server: ${error}`);
+            }
         }
     };
 
