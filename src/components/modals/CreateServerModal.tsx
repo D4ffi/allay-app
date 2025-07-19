@@ -39,6 +39,11 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
     const [loaderVersions, setLoaderVersions] = useState<Record<string, MinecraftVersion[]>>({});
     const [isLoadingVersions, setIsLoadingVersions] = useState(false);
     const [versionsError, setVersionsError] = useState<string | null>(null);
+    
+    // Server creation states
+    const [isCreatingServer, setIsCreatingServer] = useState(false);
+    const [creationProgress, setCreationProgress] = useState('');
+    const [creationError, setCreationError] = useState<string | null>(null);
 
     // Load versions from API on modal open
     useEffect(() => {
@@ -52,7 +57,7 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
         setVersionsError(null);
         
         try {
-            // Clear vanilla cache first to ensure we get all versions
+            // Clear the vanilla cache first to ensure we get all versions
             await invoke('clear_version_cache', { loader: 'vanilla' });
             
             // Load vanilla versions for Minecraft version dropdown (force refresh to get all versions)
@@ -81,7 +86,7 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                 minecraftVersion: mcVersion || null
             });
             
-            // Create a cache key that includes MC version for specific requests
+            // Create a cache key that includes an MC version for specific requests
             const cacheKey = mcVersion ? `${loader}-${mcVersion}` : loader;
             
             setLoaderVersions(prev => ({
@@ -156,10 +161,13 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
 
     const handleMinecraftVersionChange = (value: string) => {
         setSelectedVersion(value);
-        // Limpiar la versión del mod loader cuando se cambia la versión de Minecraft
+        // Limpiar la selección del mod loader y su versión cuando se cambia o limpia la versión de Minecraft
+        if (!value) {
+            setSelectedModLoader('');
+        }
         setSelectedModLoaderVersion('');
         
-        // Reload loader versions if a loader is already selected
+        // Reload loader versions if a loader is already selected and there's a value
         if (selectedModLoader && selectedModLoader !== 'vanilla' && value) {
             loadLoaderVersions(selectedModLoader, value);
         }
@@ -181,9 +189,6 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
         
         return versions.map(version => {
             let label = version.id;
-            if (version.minecraft_version) {
-                label += ` (MC ${version.minecraft_version})`;
-            }
             if (version.latest) label += ' (Latest)';
             if (version.recommended) label += ' (Recommended)';
             
@@ -208,6 +213,9 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
         setServerImage(null);
         setServerName('');
         setVersionsError(null);
+        setCreationError(null);
+        setCreationProgress('');
+        setIsCreatingServer(false);
     };
 
     // Función para cerrar el modal y resetear opciones
@@ -217,39 +225,70 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
     };
 
     const handleCreateServer = async () => {
+        // Clear previous errors
+        setCreationError(null);
+        
         // Validar que todos los campos requeridos estén llenos
         if (!serverName.trim()) {
-            alert('Please enter a server name');
+            setCreationError('Please enter a server name');
             return;
         }
         
         if (!selectedVersion) {
-            alert('Please select a Minecraft version');
+            setCreationError('Please select a Minecraft version');
             return;
         }
         
         if (!selectedModLoader) {
-            alert('Please select a mod loader');
+            setCreationError('Please select a mod loader');
             return;
         }
         
         if (selectedModLoader !== 'vanilla' && !selectedModLoaderVersion) {
-            alert('Please select a mod loader version');
+            setCreationError('Please select a mod loader version');
             return;
         }
         
+        setIsCreatingServer(true);
+        
         try {
-            // Crear la instancia del servidor en el backend
-            const result = await invoke('create_server_instance', {
+            // Step 1: Create server instance structure
+            setCreationProgress('Creating server instance...');
+            const createResult = await invoke('create_server_instance', {
                 name: serverName.trim(),
                 version: selectedVersion,
                 modLoader: selectedModLoader,
                 modLoaderVersion: selectedModLoaderVersion || 'none'
             });
             
-            console.log('Server created:', result);
+            console.log('Server instance created:', createResult);
             
-            // Crear el objeto servidor para el frontend
+            // Step 2: Download server JAR
+            setCreationProgress('Downloading server JAR file...');
+            const downloadResult = await invoke('download_server_jar', {
+                serverName: serverName.trim(),
+                loader: selectedModLoader,
+                minecraftVersion: selectedVersion,
+                loaderVersion: selectedModLoader !== 'vanilla' ? selectedModLoaderVersion : null
+            });
+            
+            console.log('Server JAR downloaded:', downloadResult);
+            
+            // Step 3: Setup server (install, generate files, etc.)
+            setCreationProgress('Setting up server environment...');
+            const setupResult = await invoke('setup_server', {
+                serverName: serverName.trim(),
+                loader: selectedModLoader,
+                minecraftVersion: selectedVersion,
+                loaderVersion: selectedModLoader !== 'vanilla' ? selectedModLoaderVersion : null
+            });
+            
+            console.log('Server setup completed:', setupResult);
+            
+            // Step 4: Complete server setup
+            setCreationProgress('Finalizing server configuration...');
+            
+            // Create the server object for the frontend
             const newServer = {
                 name: serverName.trim(),
                 description: `${selectedModLoader.charAt(0).toUpperCase() + selectedModLoader.slice(1)} server running Minecraft ${selectedVersion}`,
@@ -263,13 +302,22 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                 maxPlayers: 20
             };
             
-            // Llamar a la función del padre para agregar el servidor
+            setCreationProgress('Server created successfully!');
+            
+            // Call parent function to add the server
             onCreateServer(newServer);
             
-            closeModal();
+            // Small delay to show success message
+            setTimeout(() => {
+                closeModal();
+            }, 1000);
+            
         } catch (error) {
             console.error('Error creating server:', error);
-            alert(`Error creating server: ${error}`);
+            setCreationError(`Failed to create server: ${error}`);
+        } finally {
+            setIsCreatingServer(false);
+            setCreationProgress('');
         }
     };
 
@@ -277,43 +325,80 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
         <Modal
             isOpen={isOpen}
             onClose={closeModal}
-            title="Create Server"
-            size="md"
+            title="Create New Server"
+            size="lg"
         >
-            <div className="space-y-4">
-                {/* Server Image */}
-                <div className="flex justify-center">
+            <div className="space-y-6">
+                {/* Progress Section */}
+                {(isCreatingServer || creationProgress || creationError) && (
+                    <div className="bg-gray-50 rounded-lg p-4 border">
+                        {isCreatingServer && (
+                            <div className="flex items-center space-x-3">
+                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                                <div className="text-sm font-medium text-gray-700">
+                                    {creationProgress || 'Creating server...'}
+                                </div>
+                            </div>
+                        )}
+                        {creationError && (
+                            <div className="flex items-center space-x-3 text-red-700">
+                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                                <div className="text-sm font-medium">{creationError}</div>
+                            </div>
+                        )}
+                        {creationProgress && !isCreatingServer && !creationError && (
+                            <div className="flex items-center space-x-3 text-green-700">
+                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                <div className="text-sm font-medium">{creationProgress}</div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Server Image Section */}
+                <div className="flex justify-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+                        <label className="block text-sm font-semibold text-gray-800 mb-4 text-center">
                             Server Icon
                         </label>
                         <ChangeServerImg
                             size="lg"
                             onImageChange={handleServerImageChange}
-                            className="mx-auto"
+                            className="mx-auto shadow-lg"
                         />
                     </div>
                 </div>
 
+                {/* Server Name Section */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-800 mb-3">
                         Server Name
                     </label>
                     <input
                         type="text"
-                        placeholder="My awesome server"
+                        placeholder="Enter your server name..."
                         value={serverName}
                         onChange={(e) => setServerName(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent w-full"
+                        disabled={isCreatingServer}
+                        className={`w-full border-2 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 transition-all duration-200 ${
+                            isCreatingServer 
+                                ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60' 
+                                : 'border-gray-200 bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                        }`}
                     />
                 </div>
 
+                {/* Minecraft Version Section */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-800 mb-3">
                         Minecraft Version
                     </label>
                     {versionsError && (
-                        <div className="mb-2 p-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded">
+                        <div className="mb-3 p-3 text-sm text-red-700 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
                             {versionsError}
                         </div>
                     )}
@@ -327,23 +412,27 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                     />
                 </div>
 
+                {/* Mod Loader Section */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-semibold text-gray-800 mb-4">
                         Mod Loader
                     </label>
-                    <RadioGroup
-                        name="modLoader"
-                        options={modLoaders}
-                        value={selectedModLoader}
-                        onChange={handleModLoaderChange}
-                        layout="grid"
-                    />
+                    <div className="bg-gray-50 rounded-xl p-4">
+                        <RadioGroup
+                            name="modLoader"
+                            options={modLoaders}
+                            value={selectedModLoader}
+                            onChange={handleModLoaderChange}
+                            layout="grid"
+                            disabled={!selectedVersion}
+                        />
+                    </div>
                 </div>
 
-                {/* Dropdown condicional para versiones de mod loader */}
+                {/* Loader Version Section */}
                 {selectedVersion && selectedModLoader && selectedModLoader !== 'vanilla' && (
-                    <div className="transition-all duration-200 ease-in-out">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="transition-all duration-300 ease-in-out animate-in slide-in-from-top-2">
+                        <label className="block text-sm font-semibold text-gray-800 mb-3">
                             {selectedModLoader.charAt(0).toUpperCase() + selectedModLoader.slice(1)} Version
                         </label>
                         <Dropdown
@@ -363,19 +452,19 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                     </div>
                 )}
 
-                {/* Botones Done y Cancel */}
-                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 pt-6 border-t-2 border-gray-100">
                     <button
                         onClick={closeModal}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"
+                        className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleCreateServer}
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                        className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
-                        Done
+                        Create Server
                     </button>
                 </div>
             </div>

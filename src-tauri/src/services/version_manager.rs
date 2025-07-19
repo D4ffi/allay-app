@@ -26,7 +26,7 @@ impl VersionManager {
         // For loaders with minecraft version filtering, always fetch fresh data
         let should_force_refresh = force_refresh || minecraft_version.is_some();
         
-        // Check cache first unless force refresh is requested or we need specific MC version
+        // Check the cache first unless force refresh is requested, or we need a specific MC version
         if !should_force_refresh {
             if let Ok(true) = self.cache_manager.is_cache_valid(&loader) {
                 if let Ok(Some(cache)) = self.cache_manager.load_cache(&loader) {
