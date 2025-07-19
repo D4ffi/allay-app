@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Dropdown } from '../common/Dropdown';
 import { RadioGroup } from '../common/RadioGroup';
@@ -11,26 +11,101 @@ interface CreateServerModalProps {
     onCreateServer: (serverData: any) => void;
 }
 
+interface MinecraftVersion {
+    id: string;
+    version_type: string;
+    loader: string;
+    release_time: string;
+    latest: boolean;
+    recommended: boolean;
+    minecraft_version?: string;
+}
+
+interface VersionResponse {
+    latest?: MinecraftVersion;
+    recommended?: MinecraftVersion;
+    versions: MinecraftVersion[];
+}
+
 export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateServerModalProps) => {
     const [selectedVersion, setSelectedVersion] = useState('');
     const [selectedModLoader, setSelectedModLoader] = useState('');
     const [selectedModLoaderVersion, setSelectedModLoaderVersion] = useState('');
     const [serverImage, setServerImage] = useState<File | null>(null);
     const [serverName, setServerName] = useState('');
+    
+    // API data states
+    const [vanillaVersions, setVanillaVersions] = useState<MinecraftVersion[]>([]);
+    const [loaderVersions, setLoaderVersions] = useState<Record<string, MinecraftVersion[]>>({});
+    const [isLoadingVersions, setIsLoadingVersions] = useState(false);
+    const [versionsError, setVersionsError] = useState<string | null>(null);
 
-    // Opciones de versiones de Minecraft
-    const minecraftVersions = [
-        { value: '1.21.1', label: 'Minecraft 1.21.1' },
-        { value: '1.21', label: 'Minecraft 1.21' },
-        { value: '1.20.6', label: 'Minecraft 1.20.6' },
-        { value: '1.20.4', label: 'Minecraft 1.20.4' },
-        { value: '1.20.1', label: 'Minecraft 1.20.1' },
-        { value: '1.19.4', label: 'Minecraft 1.19.4' },
-        { value: '1.19.2', label: 'Minecraft 1.19.2' },
-        { value: '1.18.2', label: 'Minecraft 1.18.2' },
-        { value: '1.17.1', label: 'Minecraft 1.17.1' },
-        { value: '1.16.5', label: 'Minecraft 1.16.5' }
-    ];
+    // Load versions from API on modal open
+    useEffect(() => {
+        if (isOpen) {
+            loadMinecraftVersions();
+        }
+    }, [isOpen]);
+
+    const loadMinecraftVersions = async () => {
+        setIsLoadingVersions(true);
+        setVersionsError(null);
+        
+        try {
+            // Clear vanilla cache first to ensure we get all versions
+            await invoke('clear_version_cache', { loader: 'vanilla' });
+            
+            // Load vanilla versions for Minecraft version dropdown (force refresh to get all versions)
+            const vanillaResponse: VersionResponse = await invoke('get_minecraft_versions', {
+                loader: 'vanilla',
+                forceRefresh: true
+            });
+            setVanillaVersions(vanillaResponse.versions);
+            
+            console.log(`Loaded ${vanillaResponse.versions.length} vanilla versions`);
+        } catch (error) {
+            console.error('Error loading vanilla versions:', error);
+            setVersionsError('Failed to load Minecraft versions');
+        } finally {
+            setIsLoadingVersions(false);
+        }
+    };
+
+    const loadLoaderVersions = async (loader: string, mcVersion?: string) => {
+        if (loader === 'vanilla') return;
+        
+        try {
+            const response: VersionResponse = await invoke('get_minecraft_versions', {
+                loader: loader,
+                forceRefresh: false,
+                minecraftVersion: mcVersion || null
+            });
+            
+            // Create a cache key that includes MC version for specific requests
+            const cacheKey = mcVersion ? `${loader}-${mcVersion}` : loader;
+            
+            setLoaderVersions(prev => ({
+                ...prev,
+                [cacheKey]: response.versions
+            }));
+            
+            console.log(`Loaded ${response.versions.length} ${loader} versions for MC ${mcVersion || 'all'}`);
+        } catch (error) {
+            console.error(`Error loading ${loader} versions:`, error);
+        }
+    };
+
+    // Get formatted Minecraft versions for dropdown
+    const getMinecraftVersionOptions = () => {
+        if (vanillaVersions.length === 0) {
+            return [{ value: '', label: 'Loading versions...' }];
+        }
+        
+        return vanillaVersions.map(version => ({
+            value: version.id,
+            label: `Minecraft ${version.id}${version.latest ? ' (Latest)' : ''}${version.recommended ? ' (Recommended)' : ''}`
+        }));
+    };
 
     // Opciones de mod loaders
     const modLoaders = [
@@ -66,55 +141,16 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
         }
     ];
 
-    // Versiones de mod loaders
-    const modLoaderVersions = {
-        fabric: [
-            { value: '0.16.5', label: 'Fabric Loader 0.16.5' },
-            { value: '0.16.4', label: 'Fabric Loader 0.16.4' },
-            { value: '0.16.3', label: 'Fabric Loader 0.16.3' },
-            { value: '0.16.2', label: 'Fabric Loader 0.16.2' },
-            { value: '0.15.11', label: 'Fabric Loader 0.15.11' }
-        ],
-        forge: [
-            { value: '51.0.33', label: 'Forge 51.0.33 (MC 1.21.1)' },
-            { value: '50.1.0', label: 'Forge 50.1.0 (MC 1.21)' },
-            { value: '47.3.0', label: 'Forge 47.3.0 (MC 1.20.1)' },
-            { value: '43.3.13', label: 'Forge 43.3.13 (MC 1.19.2)' },
-            { value: '40.2.21', label: 'Forge 40.2.21 (MC 1.18.2)' }
-        ],
-        neoforge: [
-            { value: '21.1.57', label: 'NeoForge 21.1.57 (MC 1.21.1)' },
-            { value: '21.0.167', label: 'NeoForge 21.0.167 (MC 1.21)' },
-            { value: '20.4.240', label: 'NeoForge 20.4.240 (MC 1.20.4)' },
-            { value: '20.2.88', label: 'NeoForge 20.2.88 (MC 1.20.2)' },
-            { value: '20.1.10', label: 'NeoForge 20.1.10 (MC 1.20.1)' }
-        ],
-        paper: [
-            { value: '1.21.1-128', label: 'Paper 1.21.1-128 (MC 1.21.1)' },
-            { value: '1.21-119', label: 'Paper 1.21-119 (MC 1.21)' },
-            { value: '1.20.6-147', label: 'Paper 1.20.6-147 (MC 1.20.6)' },
-            { value: '1.20.4-497', label: 'Paper 1.20.4-497 (MC 1.20.4)' },
-            { value: '1.20.1-196', label: 'Paper 1.20.1-196 (MC 1.20.1)' },
-            { value: '1.19.4-550', label: 'Paper 1.19.4-550 (MC 1.19.4)' },
-            { value: '1.19.2-307', label: 'Paper 1.19.2-307 (MC 1.19.2)' },
-            { value: '1.18.2-388', label: 'Paper 1.18.2-388 (MC 1.18.2)' },
-            { value: '1.17.1-411', label: 'Paper 1.17.1-411 (MC 1.17.1)' },
-            { value: '1.16.5-794', label: 'Paper 1.16.5-794 (MC 1.16.5)' }
-        ],
-        quilt: [
-            { value: '0.26.4', label: 'Quilt Loader 0.26.4' },
-            { value: '0.26.3', label: 'Quilt Loader 0.26.3' },
-            { value: '0.26.0', label: 'Quilt Loader 0.26.0' },
-            { value: '0.25.1', label: 'Quilt Loader 0.25.1' },
-            { value: '0.24.0', label: 'Quilt Loader 0.24.0' }
-        ]
-    };
-
     const handleModLoaderChange = (value: string) => {
         setSelectedModLoader(value);
         // Limpiar la versión del mod loader cuando se cambia a vanilla o se cambia de tipo
         if (value === 'vanilla' || value !== selectedModLoader) {
             setSelectedModLoaderVersion('');
+        }
+        
+        // Load versions for the selected loader with the current MC version
+        if (value !== 'vanilla' && selectedVersion) {
+            loadLoaderVersions(value, selectedVersion);
         }
     };
 
@@ -122,6 +158,11 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
         setSelectedVersion(value);
         // Limpiar la versión del mod loader cuando se cambia la versión de Minecraft
         setSelectedModLoaderVersion('');
+        
+        // Reload loader versions if a loader is already selected
+        if (selectedModLoader && selectedModLoader !== 'vanilla' && value) {
+            loadLoaderVersions(selectedModLoader, value);
+        }
     };
 
     // Obtener las versiones disponibles para el mod loader seleccionado
@@ -129,8 +170,30 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
         if (selectedModLoader === 'vanilla' || !selectedModLoader) {
             return [];
         }
-        return modLoaderVersions[selectedModLoader as keyof typeof modLoaderVersions] || [];
+        
+        // Use cache key that includes MC version if available
+        const cacheKey = selectedVersion ? `${selectedModLoader}-${selectedVersion}` : selectedModLoader;
+        const versions = loaderVersions[cacheKey];
+        
+        if (!versions) {
+            return [{ value: '', label: 'Loading versions...' }];
+        }
+        
+        return versions.map(version => {
+            let label = version.id;
+            if (version.minecraft_version) {
+                label += ` (MC ${version.minecraft_version})`;
+            }
+            if (version.latest) label += ' (Latest)';
+            if (version.recommended) label += ' (Recommended)';
+            
+            return {
+                value: version.id,
+                label: label
+            };
+        });
     };
+
 
     const handleServerImageChange = (file: File | null, imageUrl: string) => {
         setServerImage(file);
@@ -144,6 +207,7 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
         setSelectedModLoaderVersion('');
         setServerImage(null);
         setServerName('');
+        setVersionsError(null);
     };
 
     // Función para cerrar el modal y resetear opciones
@@ -248,12 +312,18 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         Minecraft Version
                     </label>
+                    {versionsError && (
+                        <div className="mb-2 p-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded">
+                            {versionsError}
+                        </div>
+                    )}
                     <Dropdown
-                        options={minecraftVersions}
-                        placeholder="Select Minecraft version..."
+                        options={getMinecraftVersionOptions()}
+                        placeholder={isLoadingVersions ? "Loading versions..." : "Select Minecraft version..."}
                         value={selectedVersion}
                         onChange={handleMinecraftVersionChange}
                         className="w-full"
+                        disabled={isLoadingVersions}
                     />
                 </div>
 
@@ -278,10 +348,17 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                         </label>
                         <Dropdown
                             options={getAvailableModLoaderVersions()}
-                            placeholder={`Select ${selectedModLoader} version...`}
+                            placeholder={(() => {
+                                const cacheKey = selectedVersion ? `${selectedModLoader}-${selectedVersion}` : selectedModLoader;
+                                return loaderVersions[cacheKey] ? `Select ${selectedModLoader} version...` : "Loading versions...";
+                            })()}
                             value={selectedModLoaderVersion}
                             onChange={setSelectedModLoaderVersion}
                             className="w-full"
+                            disabled={(() => {
+                                const cacheKey = selectedVersion ? `${selectedModLoader}-${selectedVersion}` : selectedModLoader;
+                                return !loaderVersions[cacheKey];
+                            })()}
                         />
                     </div>
                 )}

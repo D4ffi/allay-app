@@ -41,8 +41,19 @@ impl ServerFileManager {
         }
 
         let content = fs::read_to_string(&self.config_path)?;
-        let config: ServerConfig = serde_json::from_str(&content)
-            .map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
+        let content = content.trim();
+        
+        // Handle empty or whitespace-only files
+        if content.is_empty() {
+            return Ok(ServerConfig::new());
+        }
+        
+        let config: ServerConfig = serde_json::from_str(content)
+            .map_err(|e| {
+                eprintln!("JSON parsing error: {}", e);
+                eprintln!("File content: '{}'", content);
+                Error::new(ErrorKind::InvalidData, format!("Failed to parse JSON: {}", e))
+            })?;
         
         Ok(config)
     }
@@ -123,6 +134,14 @@ impl ServerFileManager {
         let storage_path = base_storage_path.join(instance_name);
         fs::create_dir_all(&storage_path)?;
         Ok(storage_path)
+    }
+
+    pub fn initialize_config(&self) -> Result<(), Error> {
+        if !self.config_path.exists() || fs::read_to_string(&self.config_path)?.trim().is_empty() {
+            let config = ServerConfig::new();
+            self.save_config(&config)?;
+        }
+        Ok(())
     }
 }
 

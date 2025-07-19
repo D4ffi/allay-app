@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { LucideIcon } from 'lucide-react';
 
 interface ContextMenuItem {
     label: string;
-    icon?: React.ComponentType<{ size?: number }>;
+    icon?: LucideIcon;
     onClick: () => void;
     disabled?: boolean;
     destructive?: boolean;
