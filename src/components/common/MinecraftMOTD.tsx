@@ -72,7 +72,7 @@ const OBFUSCATED_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01
 export const MinecraftMOTD = ({ motd, className = '', theme = 'dark' }: MinecraftMOTDProps) => {
     const [parsedSegments, setParsedSegments] = useState<MOTDSegment[]>([]);
     const [obfuscatedText, setObfuscatedText] = useState<Record<number, string>>({});
-    const intervalRefs = useRef<Record<number, NodeJS.Timeout>>({});
+    const intervalRefs = useRef<Record<number, number>>({});
 
     // Get color codes based on theme
     const getColorCodes = () => theme === 'light' ? COLOR_CODES_LIGHT : COLOR_CODES_DARK;
@@ -164,7 +164,7 @@ export const MinecraftMOTD = ({ motd, className = '', theme = 'dark' }: Minecraf
                 ...prev,
                 [segmentIndex]: obfuscated
             }));
-        }, 50); // Change every 50ms for smooth obfuscation effect
+        }, 50); // Change every 50 ms for smooth obfuscation effect
         
         intervalRefs.current[segmentIndex] = interval;
     };

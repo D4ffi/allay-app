@@ -32,7 +32,7 @@ impl ServerManagementService {
         println!("Loader version: {:?}", loader_version);
         println!("Server path: {:?}", server_path);
         
-        // Create server directory if it doesn't exist
+        // Create a server directory if it doesn't exist
         fs::create_dir_all(server_path)?;
         println!("Server directory created/verified");
         
@@ -134,53 +134,28 @@ impl ServerManagementService {
 
     async fn setup_fabric_server(&self, server_path: &PathBuf, minecraft_version: &str, loader_version: Option<&str>) -> Result<()> {
         let loader_ver = loader_version.ok_or_else(|| anyhow!("Fabric loader version required"))?;
-        let installer_name = format!("fabric-server-{}-{}.jar", minecraft_version, loader_ver);
-        let installer_path = server_path.join(&installer_name);
         
-        if !installer_path.exists() {
-            return Err(anyhow!("Fabric installer not found: {:?}", installer_path));
-        }
-
-        // Check if server is already installed
-        let server_jar = server_path.join("fabric-server-launch.jar");
-        if server_jar.exists() {
-            println!("Fabric server already installed: {:?}", server_jar);
-            return Ok(());
-        }
-
-        println!("Installing Fabric server...");
+        // Extract clean loader version
+        let clean_version = if loader_ver.starts_with("fabric-") {
+            let without_prefix = loader_ver.strip_prefix("fabric-").unwrap_or(loader_ver);
+            if let Some(dash_pos) = without_prefix.find('-') {
+                &without_prefix[..dash_pos]
+            } else {
+                without_prefix
+            }
+        } else {
+            loader_ver
+        };
         
-        // Run Fabric installer
-        let installer_filename = installer_path.file_name()
-            .ok_or_else(|| anyhow!("Invalid installer filename"))?
-            .to_str()
-            .ok_or_else(|| anyhow!("Invalid installer filename encoding"))?;
-
-        let output = Command::new("java")
-            .args(&[
-                "-jar", 
-                installer_filename,
-                "server",
-                "-mcversion", minecraft_version,
-                "-loader", loader_ver,
-                "-downloadMinecraft"
-            ])
-            .current_dir(server_path)
-            .output()
-            .map_err(|e| {
-                if e.kind() == std::io::ErrorKind::NotFound {
-                    anyhow!("Java is not installed or not found in PATH. Please install Java to run Minecraft servers.")
-                } else {
-                    anyhow!("Failed to execute Java: {}", e)
-                }
-            })?;
-
-        if !output.status.success() {
-            let error = String::from_utf8_lossy(&output.stderr);
-            return Err(anyhow!("Fabric installation failed: {}", error));
+        // Fabric uses a pre-built server launcher with specific filename format
+        let server_jar_name = format!("fabric-server-mc.{}-loader.{}-launcher.1.0.3.jar", minecraft_version, clean_version);
+        let server_jar = server_path.join(&server_jar_name);
+        
+        if !server_jar.exists() {
+            return Err(anyhow!("Fabric server launcher not found: {:?}", server_jar));
         }
 
-        println!("Fabric server installed successfully");
+        println!("Fabric server launcher ready: {:?}", server_jar);
         Ok(())
     }
 
@@ -329,56 +304,185 @@ impl ServerManagementService {
     }
 
     async fn setup_quilt_server(&self, server_path: &PathBuf, minecraft_version: &str, loader_version: Option<&str>) -> Result<()> {
-        let loader_ver = loader_version.ok_or_else(|| anyhow!("Quilt loader version required"))?;
-        let installer_name = format!("quilt-server-{}-{}.jar", minecraft_version, loader_ver);
-        let installer_path = server_path.join(&installer_name);
+        let _loader_ver = loader_version.ok_or_else(|| anyhow!("Quilt loader version required"))?;
         
-        if !installer_path.exists() {
-            return Err(anyhow!("Quilt installer not found: {:?}", installer_path));
+        // Check if Quilt profile JSON exists
+        let profile_json = server_path.join("quilt-server-profile.json");
+        if !profile_json.exists() {
+            return Err(anyhow!("Quilt server profile not found: {:?}", profile_json));
         }
 
-        // Check if server is already installed
-        let server_jar = server_path.join("quilt-server-launch.jar");
-        if server_jar.exists() {
-            println!("Quilt server already installed: {:?}", server_jar);
+        // Check if libraries are already downloaded
+        let libraries_dir = server_path.join("libraries");
+        if libraries_dir.exists() {
+            println!("Quilt server libraries already installed");
             return Ok(());
         }
 
-        println!("Installing Quilt server...");
-        
-        // Run Quilt installer (similar to Fabric)
-        let installer_filename = installer_path.file_name()
-            .ok_or_else(|| anyhow!("Invalid installer filename"))?
-            .to_str()
-            .ok_or_else(|| anyhow!("Invalid installer filename encoding"))?;
+        println!("Installing Quilt server libraries...");
 
-        let output = Command::new("java")
-            .args(&[
-                "-jar", 
-                installer_filename,
-                "install",
-                "server",
-                minecraft_version,
-                "--install-dir", ".",
-                "--loader-version", loader_ver
-            ])
-            .current_dir(server_path)
-            .output()
-            .map_err(|e| {
-                if e.kind() == std::io::ErrorKind::NotFound {
-                    anyhow!("Java is not installed or not found in PATH. Please install Java to run Minecraft servers.")
-                } else {
-                    anyhow!("Failed to execute Java: {}", e)
+        // Read and parse the profile JSON
+        let profile_content = fs::read_to_string(&profile_json)?;
+        let profile: serde_json::Value = serde_json::from_str(&profile_content)?;
+
+        // Create libraries directory
+        fs::create_dir_all(&libraries_dir)?;
+
+        // Download all required libraries
+        if let Some(libraries) = profile["libraries"].as_array() {
+            for library in libraries {
+                if let (Some(name), Some(url)) = (library["name"].as_str(), library["url"].as_str()) {
+                    self.download_library(name, url, &libraries_dir).await?;
                 }
-            })?;
-
-        if !output.status.success() {
-            let error = String::from_utf8_lossy(&output.stderr);
-            return Err(anyhow!("Quilt installation failed: {}", error));
+            }
         }
 
-        println!("Quilt server installed successfully");
+        // Download vanilla server JAR if needed
+        let vanilla_jar = server_path.join("server.jar");
+        if !vanilla_jar.exists() {
+            println!("Downloading vanilla Minecraft server for Quilt...");
+            // Use the vanilla download service to get the server JAR
+            let vanilla_url = self.get_vanilla_server_url(minecraft_version).await?;
+            let response = reqwest::get(&vanilla_url).await?;
+            let bytes = response.bytes().await?;
+            fs::write(&vanilla_jar, &bytes)?;
+            println!("Vanilla server JAR downloaded: {:?}", vanilla_jar);
+        }
+
+        println!("Quilt server setup completed");
         Ok(())
+    }
+
+    async fn download_library(&self, name: &str, base_url: &str, libraries_dir: &PathBuf) -> Result<()> {
+        // Convert Maven coordinate to file path
+        // Example: "org.quiltmc:quilt-loader:0.19.0" -> "org/quiltmc/quilt-loader/0.19.0/quilt-loader-0.19.0.jar"
+        let parts: Vec<&str> = name.split(':').collect();
+        if parts.len() != 3 {
+            return Err(anyhow!("Invalid library name format: {}", name));
+        }
+        
+        let group = parts[0].replace('.', "/");
+        let artifact = parts[1];
+        let version = parts[2];
+        
+        let jar_name = format!("{}-{}.jar", artifact, version);
+        let relative_path = format!("{}/{}/{}/{}", group, artifact, version, jar_name);
+        let download_url = format!("{}{}", base_url.trim_end_matches('/'), relative_path);
+        
+        // Create the directory structure
+        let lib_dir = libraries_dir.join(&group).join(artifact).join(version);
+        fs::create_dir_all(&lib_dir)?;
+        
+        let jar_path = lib_dir.join(&jar_name);
+        
+        // Skip if already exists
+        if jar_path.exists() {
+            println!("Library already exists: {}", jar_name);
+            return Ok(());
+        }
+        
+        println!("Downloading library: {} from {}", jar_name, download_url);
+        
+        let response = reqwest::get(&download_url).await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to download library {}: HTTP {}", name, response.status()));
+        }
+        
+        let bytes = response.bytes().await?;
+        fs::write(&jar_path, &bytes)?;
+        
+        println!("Downloaded library: {:?}", jar_path);
+        Ok(())
+    }
+
+    async fn get_vanilla_server_url(&self, minecraft_version: &str) -> Result<String> {
+        // Get version manifest
+        let manifest_url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
+        let manifest: serde_json::Value = reqwest::get(manifest_url).await?.json().await?;
+        
+        // Find the specific version
+        let versions = manifest["versions"].as_array()
+            .ok_or_else(|| anyhow!("Invalid version manifest"))?;
+        
+        let version_info = versions.iter()
+            .find(|v| v["id"].as_str() == Some(minecraft_version))
+            .ok_or_else(|| anyhow!("Minecraft version {} not found", minecraft_version))?;
+        
+        let version_url = version_info["url"].as_str()
+            .ok_or_else(|| anyhow!("Version URL not found"))?;
+        
+        // Get version details
+        let version_details: serde_json::Value = reqwest::get(version_url).await?.json().await?;
+        
+        // Get server JAR URL
+        let server_url = version_details["downloads"]["server"]["url"].as_str()
+            .ok_or_else(|| anyhow!("Server JAR URL not found for version {}", minecraft_version))?;
+        
+        Ok(server_url.to_string())
+    }
+
+    fn build_quilt_start_command(&self, server_path: &PathBuf, memory_gb: u32, min_memory_gb: u32) -> Result<Vec<String>> {
+        // Read Quilt profile to get mainClass and libraries
+        let profile_json = server_path.join("quilt-server-profile.json");
+        if !profile_json.exists() {
+            return Err(anyhow!("Quilt server profile not found: {:?}", profile_json));
+        }
+
+        let profile_content = fs::read_to_string(&profile_json)?;
+        let profile: serde_json::Value = serde_json::from_str(&profile_content)?;
+
+        // Get mainClass
+        let main_class = profile["mainClass"].as_str()
+            .ok_or_else(|| anyhow!("mainClass not found in Quilt profile"))?;
+
+        // Build classpath with all libraries
+        let mut classpath = Vec::new();
+        
+        // Add vanilla server.jar first
+        let vanilla_jar = server_path.join("server.jar");
+        if vanilla_jar.exists() {
+            classpath.push("server.jar".to_string());
+        }
+
+        // Add all Quilt libraries
+        if let Some(libraries) = profile["libraries"].as_array() {
+            for library in libraries {
+                if let Some(name) = library["name"].as_str() {
+                    let jar_path = self.get_library_jar_path(name)?;
+                    classpath.push(format!("libraries/{}", jar_path));
+                }
+            }
+        }
+
+        let classpath_str = classpath.join(if cfg!(windows) { ";" } else { ":" });
+
+        // Build the complete command
+        let mut args = vec![
+            format!("-Xmx{}G", memory_gb),
+            format!("-Xms{}G", min_memory_gb),
+            "-cp".to_string(),
+            classpath_str,
+            main_class.to_string(),
+            "nogui".to_string(),
+        ];
+
+        Ok(args)
+    }
+
+    fn get_library_jar_path(&self, name: &str) -> Result<String> {
+        // Convert Maven coordinate to relative JAR path
+        // Example: "org.quiltmc:quilt-loader:0.19.0" -> "org/quiltmc/quilt-loader/0.19.0/quilt-loader-0.19.0.jar"
+        let parts: Vec<&str> = name.split(':').collect();
+        if parts.len() != 3 {
+            return Err(anyhow!("Invalid library name format: {}", name));
+        }
+        
+        let group = parts[0].replace('.', "/");
+        let artifact = parts[1];
+        let version = parts[2];
+        
+        let jar_name = format!("{}-{}.jar", artifact, version);
+        Ok(format!("{}/{}/{}/{}", group, artifact, version, jar_name))
     }
 
     fn generate_eula_file(&self, server_path: &PathBuf) -> Result<()> {
@@ -420,19 +524,40 @@ impl ServerManagementService {
         Ok(())
     }
 
-    pub async fn start_server(&self, server_name: &str, server_path: &PathBuf, loader: LoaderType) -> Result<()> {
+    pub async fn start_server(&self, server_name: &str, server_path: &PathBuf, loader: LoaderType, memory_mb: u32) -> Result<()> {
         let mut servers = self.running_servers.lock().await;
         
         if servers.contains_key(server_name) {
             return Err(anyhow!("Server {} is already running", server_name));
         }
 
-        let java_command = self.build_start_command(server_path, loader)?;
+        let command_args = self.build_start_command(server_path, loader, memory_mb)?;
         
-        println!("Starting server: {} with command: {:?}", server_name, java_command);
+        println!("Starting server: {} with command: {:?}", server_name, command_args);
         
-        let mut child = Command::new("java")
-            .args(&java_command)
+        // Determine the command and arguments based on the first element
+        let (command, args) = if command_args.len() > 0 {
+            let first_arg = &command_args[0];
+            
+            if first_arg == "cmd" || first_arg == "bash" || first_arg == "./run.sh" || first_arg.ends_with(".sh") || first_arg.ends_with(".bat") {
+                // This is a script command, use the first argument as the command
+                if first_arg == "cmd" || first_arg == "bash" {
+                    // Windows: cmd /c run.bat or Unix: bash ./run.sh
+                    (first_arg.clone(), command_args[1..].to_vec())
+                } else {
+                    // Direct script execution: ./run.sh
+                    (first_arg.clone(), command_args[1..].to_vec())
+                }
+            } else {
+                // This is a Java command
+                ("java".to_string(), command_args)
+            }
+        } else {
+            return Err(anyhow!("No command arguments provided"));
+        };
+        
+        let mut child = Command::new(&command)
+            .args(&args)
             .current_dir(server_path)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -440,9 +565,14 @@ impl ServerManagementService {
             .spawn()
             .map_err(|e| {
                 if e.kind() == std::io::ErrorKind::NotFound {
-                    anyhow!("Java is not installed or not found in PATH. Please install Java to run Minecraft servers.")
+                    match command.as_str() {
+                        "java" => anyhow!("Java is not installed or not found in PATH. Please install Java to run Minecraft servers."),
+                        "bash" => anyhow!("Bash is not available or not found in PATH. Please install bash or use a different shell."),
+                        "cmd" => anyhow!("Command Prompt (cmd) is not available. This should not happen on Windows."),
+                        _ => anyhow!("{} is not available or not found in PATH. Error: {}", command, e)
+                    }
                 } else {
-                    anyhow!("Failed to execute Java: {}", e)
+                    anyhow!("Failed to execute {}: {}", command, e)
                 }
             })?;
 
@@ -452,10 +582,14 @@ impl ServerManagementService {
         Ok(())
     }
 
-    fn build_start_command(&self, server_path: &PathBuf, loader: LoaderType) -> Result<Vec<String>> {
+    fn build_start_command(&self, server_path: &PathBuf, loader: LoaderType, memory_mb: u32) -> Result<Vec<String>> {
+        // Convert MB to GB for JVM args, ensure minimum 1GB
+        let memory_gb = std::cmp::max(1, memory_mb / 1024);
+        let min_memory_gb = std::cmp::max(1, memory_gb / 2); // Half of max memory for initial heap
+        
         let mut args = vec![
-            "-Xmx2G".to_string(),
-            "-Xms1G".to_string(),
+            format!("-Xmx{}G", memory_gb),
+            format!("-Xms{}G", min_memory_gb),
             "-jar".to_string(),
         ];
 
@@ -472,14 +606,56 @@ impl ServerManagementService {
                 }
                 return Err(anyhow!("Vanilla server JAR not found"));
             }
-            LoaderType::Fabric => "fabric-server-launch.jar".to_string(),
-            LoaderType::Forge | LoaderType::NeoForge => {
-                // Look for run.sh script first, otherwise find the server JAR
-                let run_script = server_path.join("run.sh");
-                if run_script.exists() {
-                    // Use the run script instead of direct java command
-                    return Ok(vec!["./run.sh".to_string()]);
+            LoaderType::Fabric => {
+                // Find the fabric server launcher with the specific naming format
+                let entries = fs::read_dir(server_path)?;
+                for entry in entries {
+                    let entry = entry?;
+                    let file_name = entry.file_name().to_string_lossy().to_string();
+                    if file_name.starts_with("fabric-server-mc.") && file_name.contains("-loader.") && file_name.contains("-launcher.") && file_name.ends_with(".jar") {
+                        return Ok([args, vec![file_name, "nogui".to_string()]].concat());
+                    }
                 }
+                return Err(anyhow!("Fabric server launcher JAR not found"));
+            }
+            LoaderType::Forge | LoaderType::NeoForge => {
+                // Check OS and use appropriate script
+                let (script_path, script_command) = if cfg!(windows) {
+                    (server_path.join("run.bat"), "run.bat".to_string())
+                } else {
+                    (server_path.join("run.sh"), "./run.sh".to_string())
+                };
+                
+                if script_path.exists() {
+                    // Use the OS-appropriate run script
+                    println!("Using {} script for {}", script_command, if cfg!(windows) { "Windows" } else { "Unix" });
+                    
+                    if cfg!(windows) {
+                        // For Windows batch files, we need to use cmd.exe
+                        return Ok(vec!["cmd".to_string(), "/c".to_string(), script_command]);
+                    } else {
+                        // For Unix, ensure the script is executable
+                        #[cfg(unix)]
+                        {
+                            use std::os::unix::fs::PermissionsExt;
+                            if let Ok(metadata) = script_path.metadata() {
+                                let permissions = metadata.permissions();
+                                if permissions.mode() & 0o111 == 0 {
+                                    // Script is not executable, try to make it executable
+                                    let mut new_permissions = permissions.clone();
+                                    new_permissions.set_mode(permissions.mode() | 0o755);
+                                    let _ = std::fs::set_permissions(&script_path, new_permissions);
+                                    println!("Made {} executable", script_command);
+                                }
+                            }
+                        }
+                        
+                        // Use bash to execute the script for better compatibility
+                        return Ok(vec!["bash".to_string(), script_command]);
+                    }
+                }
+                
+                println!("No run script found, falling back to direct JAR execution");
                 
                 // Find forge/neoforge server JAR
                 let entries = fs::read_dir(server_path)?;
@@ -505,7 +681,10 @@ impl ServerManagementService {
                 }
                 return Err(anyhow!("Paper server JAR not found"));
             }
-            LoaderType::Quilt => "quilt-server-launch.jar".to_string(),
+            LoaderType::Quilt => {
+                // Quilt needs to build a custom classpath and use mainClass
+                return self.build_quilt_start_command(server_path, memory_gb, min_memory_gb);
+            }
         };
 
         args.push(jar_name);

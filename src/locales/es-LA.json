@@ -1,0 +1,172 @@
+{
+  "common": {
+    "create": "Crear",
+    "search": "Buscar",
+    "pin": "Fijar",
+    "filter": "Filtrar",
+    "settings": "Configuración",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "yes": "Sí",
+    "no": "No",
+    "start": "Iniciar",
+    "stop": "Detener",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "warning": "Advertencia",
+    "confirm": "Confirmar"
+  },
+  "window": {
+    "minimize": "Minimizar",
+    "maximize": "Maximizar",
+    "close": "Cerrar"
+  },
+  "actionBar": {
+    "createServer": "Crear nuevo servidor",
+    "searchServers": "Buscar servidores",
+    "pinServers": "Fijar servidores", 
+    "filterServers": "Filtrar servidores",
+    "appSettings": "Configuración de la aplicación"
+  },
+  "serverCard": {
+    "startServer": "Iniciar Servidor",
+    "stopServer": "Detener Servidor",
+    "editServer": "Editar Servidor",
+    "openInExplorer": "Abrir en Explorador de Archivos",
+    "deleteServer": "Eliminar Servidor",
+    "running": "ejecutándose",
+    "offline": "desconectado",
+    "players": "jugadores"
+  },
+  "serverCreation": {
+    "title": "Crear Nuevo Servidor",
+    "serverIcon": "Icono del Servidor",
+    "clickToChange": "Haz clic para cambiar",
+    "serverName": "Nombre del Servidor",
+    "serverNamePlaceholder": "Ingresa el nombre del servidor",
+    "minecraftVersion": "Versión de Minecraft",
+    "selectVersion": "Selecciona la versión de Minecraft",
+    "modLoader": "Cargador de Mods",
+    "modLoaderVersion": "Versión del Cargador de Mods",
+    "selectModLoaderVersion": "Selecciona la versión del cargador de mods",
+    "createServer": "Crear Servidor",
+    "creating": "Creando...",
+    "loaderTypes": {
+      "vanilla": "Vanilla - Experiencia pura de Minecraft",
+      "fabric": "Fabric - Modding ligero y moderno",
+      "forge": "Forge - Plataforma de modding más popular",
+      "neoforge": "NeoForge - Alternativa moderna a Forge",
+      "paper": "Paper - Software de servidor de alto rendimiento",
+      "quilt": "Quilt - Fork de Fabric impulsado por la comunidad"
+    },
+    "progress": {
+      "creatingInstance": "Creando instancia del servidor...",
+      "downloadingJar": "Descargando archivo JAR del servidor...",
+      "finalizingSetup": "Finalizando configuración del servidor..."
+    },
+    "validation": {
+      "nameRequired": "El nombre del servidor es requerido",
+      "versionRequired": "La versión de Minecraft es requerida",
+      "loaderRequired": "El cargador de mods es requerido",
+      "loaderVersionRequired": "La versión del cargador de mods es requerida para servidores no-vanilla"
+    }
+  },
+  "serverEdit": {
+    "title": "Editar Servidor",
+    "serverName": "Nombre del Servidor",
+    "serverNamePlaceholder": "Ingresa el nombre del servidor",
+    "description": "Descripción",
+    "descriptionType": "Tipo de Descripción",
+    "customDescription": "Descripción Personalizada",
+    "useMOTD": "Usar MOTD del server.properties",
+    "customDescriptionPlaceholder": "Ingresa una descripción personalizada",
+    "memoryAllocation": "Asignación de Memoria",
+    "serverIcon": "Icono del Servidor",
+    "clickToChange": "Haz clic para cambiar",
+    "resetToDefault": "Restablecer por defecto",
+    "saveChanges": "Guardar Cambios",
+    "saving": "Guardando..."
+  },
+  "memorySlider": {
+    "title": "Asignación de Memoria",
+    "detectingMemory": "Detectando memoria del sistema...",
+    "memoryDetectionFailed": "Falló la detección de memoria",
+    "fallbackMemory": "Usando respaldo: límite de {{memory}}",
+    "systemMemory": "Memoria del Sistema: {{memory}}",
+    "percentageOfSystem": "{{percentage}}% de la memoria del sistema",
+    "warningTooltip": "Advertencia: Asignar más del 75% de la memoria del sistema puede causar problemas de rendimiento. Considera dejar más memoria disponible para tu sistema operativo.",
+    "rangeIndicators": {
+      "min": "Mín: {{memory}}",
+      "max": "Máx: {{memory}}",
+      "threshold": "75%: {{memory}}"
+    },
+    "presets": {
+      "oneGB": "1GB",
+      "twoGB": "2GB",
+      "fourGB": "4GB", 
+      "fiftyPercent": "50%"
+    }
+  },
+  "contextMenu": {
+    "startServer": "Iniciar Servidor",
+    "stopServer": "Detener Servidor", 
+    "editServer": "Editar Servidor",
+    "openInExplorer": "Abrir en Explorador de Archivos",
+    "deleteServer": "Eliminar Servidor"
+  },
+  "home": {
+    "noServers": {
+      "title": "No hay servidores guardados",
+      "description": "Para crear uno nuevo,\npresiona el botón + en el menú de la barra de acciones."
+    },
+    "deleteConfirmation": "¿Estás seguro de que quieres eliminar \"{{serverName}}\"?"
+  },
+  "tooltips": {
+    "serverIcon": "Haz clic para subir un icono personalizado del servidor",
+    "memoryWarning": "Asignación alta de memoria detectada",
+    "modLoaderInfo": "Elige el cargador de mods para tu servidor",
+    "versionInfo": "Selecciona la versión de Minecraft para tu servidor"
+  },
+  "errors": {
+    "serverCreationFailed": "Error al crear el servidor: {{error}}",
+    "serverUpdateFailed": "Error al actualizar el servidor: {{error}}",
+    "serverDeletionFailed": "Error al eliminar el servidor: {{error}}",
+    "loadServersFailed": "Error al cargar servidores: {{error}}",
+    "maxPlayersFailed": "No se pudo cargar jugadores máximos para {{serverName}}, usando por defecto",
+    "memoryDetectionFailed": "Error al cargar memoria del sistema: {{error}}",
+    "fileUploadFailed": "Error al subir archivo: {{error}}",
+    "invalidFileType": "Tipo de archivo inválido. Por favor selecciona un archivo de imagen.",
+    "fileTooLarge": "El archivo es muy grande. El tamaño máximo es {{maxSize}}MB.",
+    "serverControlFailed": "Error al {{action}} el servidor '{{serverName}}': {{error}}"
+  },
+  "success": {
+    "serverCreated": "Servidor '{{serverName}}' creado exitosamente",
+    "serverUpdated": "Servidor '{{serverName}}' actualizado exitosamente",
+    "serverDeleted": "Servidor '{{serverName}}' eliminado exitosamente"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": {
+      "title": "Idioma de la Aplicación",
+      "placeholder": "Seleccionar idioma",
+      "description": "Elige tu idioma preferido para la interfaz de la aplicación."
+    },
+    "futureSettings": "Más configuraciones estarán disponibles en futuras actualizaciones."
+  },
+  "languages": {
+    "en": "Inglés",
+    "es-LA": "Español Latinoamericano"
+  },
+  "deleteServerModal": {
+    "title": "Eliminar Servidor",
+    "confirmMessage": "¿Estás seguro de que quieres eliminar este servidor?",
+    "warningText": "Esta acción no se puede deshacer. Todos los archivos del servidor y mundos serán eliminados permanentemente.",
+    "serverFolder": "Carpeta del servidor",
+    "deleting": "Eliminando...",
+    "confirmDelete": "Eliminar Servidor"
+  }
+}

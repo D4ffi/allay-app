@@ -11,6 +11,14 @@ pub struct ServerInstance {
     pub mod_loader: String,
     pub mod_loader_version: String,
     pub storage_path: PathBuf,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default = "default_memory")]
+    pub memory_mb: u32,
+}
+
+fn default_memory() -> u32 {
+    2048 // Default 2GB in MB
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -100,6 +108,34 @@ impl ServerFileManager {
         Ok(())
     }
 
+    pub fn remove_instance_with_storage(&self, name: &str, base_storage_path: &Path) -> Result<(), Error> {
+        // Get instance info before removing it
+        let config = self.load_config()?;
+        let instance = config.instances.get(name)
+            .ok_or_else(|| Error::new(
+                ErrorKind::NotFound,
+                format!("Instance with name '{}' not found", name),
+            ))?;
+
+        // Build storage path
+        let storage_path = base_storage_path.join(name);
+        
+        // Remove from config first
+        self.remove_instance(name)?;
+        
+        // Then remove the storage directory if it exists
+        if storage_path.exists() {
+            fs::remove_dir_all(&storage_path).map_err(|e| {
+                Error::new(
+                    ErrorKind::PermissionDenied,
+                    format!("Failed to delete server folder '{}': {}", storage_path.display(), e),
+                )
+            })?;
+        }
+
+        Ok(())
+    }
+
     pub fn update_instance(&self, name: &str, updated_instance: ServerInstance) -> Result<(), Error> {
         let mut config = self.load_config()?;
         
@@ -157,10 +193,12 @@ impl ServerInstance {
         
         Ok(Self {
             name,
+            description: None,
             version,
             mod_loader,
             mod_loader_version,
             storage_path,
+            memory_mb: default_memory(),
         })
     }
 }

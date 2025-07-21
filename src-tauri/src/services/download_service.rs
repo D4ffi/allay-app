@@ -127,9 +127,24 @@ impl DownloadService {
     }
 
     async fn get_fabric_download_url(&self, minecraft_version: &str, loader_version: &str) -> Result<String> {
+        // Extract the clean loader version from the full version string
+        // Input format: "fabric-0.16.14-1.21.8" -> Output should be: "0.16.14"
+        let clean_loader_version = if loader_version.starts_with("fabric-") {
+            // Remove "fabric-" prefix
+            let without_prefix = loader_version.strip_prefix("fabric-").unwrap_or(loader_version);
+            // Split by "-" and take only the loader version part (before the minecraft version)
+            if let Some(dash_pos) = without_prefix.find('-') {
+                &without_prefix[..dash_pos]
+            } else {
+                without_prefix
+            }
+        } else {
+            loader_version
+        };
+        
         Ok(format!(
-            "https://meta.fabricmc.net/v2/versions/loader/{}/{}/1.0.1/server/jar",
-            minecraft_version, loader_version
+            "https://meta.fabricmc.net/v2/versions/loader/{}/{}/1.0.3/server/jar",
+            minecraft_version, clean_loader_version
         ))
     }
 
@@ -185,10 +200,31 @@ impl DownloadService {
     }
 
     async fn get_quilt_download_url(&self, minecraft_version: &str, loader_version: &str) -> Result<String> {
-        Ok(format!(
-            "https://meta.quiltmc.org/v3/versions/loader/{}/{}/1.0.0/server/jar",
-            minecraft_version, loader_version
-        ))
+        // Extract the actual loader version from the combined version string
+        // Expected format: "quilt-{loader_version}-{minecraft_version}" -> extract {loader_version}
+        let actual_loader_version = if loader_version.starts_with("quilt-") {
+            let without_prefix = loader_version.strip_prefix("quilt-").unwrap_or(loader_version);
+            // Split by "-" and take the first part (loader version, before minecraft version)
+            if let Some(dash_pos) = without_prefix.find('-') {
+                &without_prefix[..dash_pos]
+            } else {
+                without_prefix
+            }
+        } else {
+            loader_version
+        };
+        
+        // For Quilt, we need to download the server profile JSON
+        // This will be used during setup to download all required libraries
+        let profile_url = format!(
+            "https://meta.quiltmc.org/v3/versions/loader/{}/{}/server/json",
+            minecraft_version, actual_loader_version
+        );
+        
+        println!("Quilt server profile URL: {}", profile_url);
+        
+        // Return the profile URL - we'll download the JSON and process it during setup
+        Ok(profile_url)
     }
 
     fn get_jar_filename(
@@ -201,7 +237,18 @@ impl DownloadService {
             LoaderType::Vanilla => format!("server-{}.jar", minecraft_version),
             LoaderType::Fabric => {
                 let version_str = loader_version.as_ref().map(|s| s.as_str()).unwrap_or("unknown");
-                format!("fabric-server-{}-{}.jar", minecraft_version, version_str)
+                // Extract clean loader version (same logic as download URL)
+                let clean_version = if version_str.starts_with("fabric-") {
+                    let without_prefix = version_str.strip_prefix("fabric-").unwrap_or(version_str);
+                    if let Some(dash_pos) = without_prefix.find('-') {
+                        &without_prefix[..dash_pos]
+                    } else {
+                        without_prefix
+                    }
+                } else {
+                    version_str
+                };
+                format!("fabric-server-mc.{}-loader.{}-launcher.1.0.3.jar", minecraft_version, clean_version)
             },
             LoaderType::Forge => {
                 let version_str = loader_version.as_ref().map(|s| s.as_str()).unwrap_or("unknown");
@@ -223,8 +270,8 @@ impl DownloadService {
             },
             LoaderType::Paper => format!("paper-{}.jar", minecraft_version),
             LoaderType::Quilt => {
-                let version_str = loader_version.as_ref().map(|s| s.as_str()).unwrap_or("unknown");
-                format!("quilt-server-{}-{}.jar", minecraft_version, version_str)
+                // Quilt downloads the server profile JSON first
+                "quilt-server-profile.json".to_string()
             },
         }
     }

@@ -147,8 +147,11 @@ export const EditServerModal = ({ isOpen, onClose, onSaveServer, serverData }: E
                 memory: memoryAllocation
             };
             
-            // TODO: Call backend to update server properties/config
-            // await invoke('update_server_config', { serverData: updatedServer });
+            // Update server memory configuration
+            await invoke('update_server_memory', {
+                name: serverData.name,
+                memoryMb: memoryAllocation
+            });
             
             // Call parent function to update the server
             onSaveServer(updatedServer);

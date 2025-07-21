@@ -1,0 +1,172 @@
+{
+  "common": {
+    "create": "Create",
+    "search": "Search", 
+    "pin": "Pin",
+    "filter": "Filter",
+    "settings": "Settings",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "start": "Start",
+    "stop": "Stop",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "confirm": "Confirm"
+  },
+  "window": {
+    "minimize": "Minimize",
+    "maximize": "Maximize", 
+    "close": "Close"
+  },
+  "actionBar": {
+    "createServer": "Create new server",
+    "searchServers": "Search servers",
+    "pinServers": "Pin servers",
+    "filterServers": "Filter servers",
+    "appSettings": "Application settings"
+  },
+  "serverCard": {
+    "startServer": "Start Server",
+    "stopServer": "Stop Server",
+    "editServer": "Edit Server",
+    "openInExplorer": "Open in File Explorer",
+    "deleteServer": "Delete Server",
+    "running": "running",
+    "offline": "offline",
+    "players": "players"
+  },
+  "serverCreation": {
+    "title": "Create New Server",
+    "serverIcon": "Server Icon",
+    "clickToChange": "Click to change",
+    "serverName": "Server Name",
+    "serverNamePlaceholder": "Enter server name",
+    "minecraftVersion": "Minecraft Version",
+    "selectVersion": "Select Minecraft version",
+    "modLoader": "Mod Loader",
+    "modLoaderVersion": "Mod Loader Version",
+    "selectModLoaderVersion": "Select mod loader version",
+    "createServer": "Create Server",
+    "creating": "Creating...",
+    "loaderTypes": {
+      "vanilla": "Vanilla - Pure Minecraft experience",
+      "fabric": "Fabric - Lightweight and modern modding",
+      "forge": "Forge - Most popular modding platform",
+      "neoforge": "NeoForge - Modern Forge alternative",
+      "paper": "Paper - High-performance server software",
+      "quilt": "Quilt - Community-driven Fabric fork"
+    },
+    "progress": {
+      "creatingInstance": "Creating server instance...",
+      "downloadingJar": "Downloading server JAR...",
+      "finalizingSetup": "Finalizing server setup..."
+    },
+    "validation": {
+      "nameRequired": "Server name is required",
+      "versionRequired": "Minecraft version is required",
+      "loaderRequired": "Mod loader is required",
+      "loaderVersionRequired": "Mod loader version is required for non-vanilla servers"
+    }
+  },
+  "serverEdit": {
+    "title": "Edit Server",
+    "serverName": "Server Name",
+    "serverNamePlaceholder": "Enter server name",
+    "description": "Description",
+    "descriptionType": "Description Type",
+    "customDescription": "Custom Description",
+    "useMOTD": "Use MOTD from server.properties",
+    "customDescriptionPlaceholder": "Enter custom description",
+    "memoryAllocation": "Memory Allocation",
+    "serverIcon": "Server Icon",
+    "clickToChange": "Click to change",
+    "resetToDefault": "Reset to default",
+    "saveChanges": "Save Changes",
+    "saving": "Saving..."
+  },
+  "memorySlider": {
+    "title": "Memory Allocation",
+    "detectingMemory": "Detecting system memory...",
+    "memoryDetectionFailed": "Memory detection failed",
+    "fallbackMemory": "Using fallback: {{memory}} limit",
+    "systemMemory": "System Memory: {{memory}}",
+    "percentageOfSystem": "{{percentage}}% of system memory",
+    "warningTooltip": "Warning: Allocating more than 75% of system memory may cause performance issues. Consider leaving more memory available for your operating system.",
+    "rangeIndicators": {
+      "min": "Min: {{memory}}",
+      "max": "Max: {{memory}}",
+      "threshold": "75%: {{memory}}"
+    },
+    "presets": {
+      "oneGB": "1GB",
+      "twoGB": "2GB", 
+      "fourGB": "4GB",
+      "fiftyPercent": "50%"
+    }
+  },
+  "contextMenu": {
+    "startServer": "Start Server",
+    "stopServer": "Stop Server",
+    "editServer": "Edit Server",
+    "openInExplorer": "Open in File Explorer",
+    "deleteServer": "Delete Server"
+  },
+  "home": {
+    "noServers": {
+      "title": "No servers saved",
+      "description": "To create a new one,\npress the + button in the action bar menu."
+    },
+    "deleteConfirmation": "Are you sure you want to delete \"{{serverName}}\"?"
+  },
+  "tooltips": {
+    "serverIcon": "Click to upload a custom server icon",
+    "memoryWarning": "High memory allocation detected",
+    "modLoaderInfo": "Choose the mod loader for your server",
+    "versionInfo": "Select the Minecraft version for your server"
+  },
+  "errors": {
+    "serverCreationFailed": "Failed to create server: {{error}}",
+    "serverUpdateFailed": "Failed to update server: {{error}}",
+    "serverDeletionFailed": "Error deleting server: {{error}}",
+    "loadServersFailed": "Error loading servers: {{error}}",
+    "maxPlayersFailed": "Could not load max players for {{serverName}}, using default",
+    "memoryDetectionFailed": "Error loading system memory: {{error}}",
+    "fileUploadFailed": "Failed to upload file: {{error}}",
+    "invalidFileType": "Invalid file type. Please select an image file.",
+    "fileTooLarge": "File is too large. Maximum size is {{maxSize}}MB.",
+    "serverControlFailed": "Failed to {{action}} server '{{serverName}}': {{error}}"
+  },
+  "success": {
+    "serverCreated": "Server '{{serverName}}' created successfully",
+    "serverUpdated": "Server '{{serverName}}' updated successfully", 
+    "serverDeleted": "Server '{{serverName}}' deleted successfully"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": {
+      "title": "Application Language",
+      "placeholder": "Select language",
+      "description": "Choose your preferred language for the application interface."
+    },
+    "futureSettings": "More settings will be available in future updates."
+  },
+  "languages": {
+    "en": "English",
+    "es-LA": "Latin American Spanish"
+  },
+  "deleteServerModal": {
+    "title": "Delete Server",
+    "confirmMessage": "Are you sure you want to delete this server?",
+    "warningText": "This action cannot be undone. All server files and worlds will be permanently deleted.",
+    "serverFolder": "Server folder",
+    "deleting": "Deleting...",
+    "confirmDelete": "Delete Server"
+  }
+}

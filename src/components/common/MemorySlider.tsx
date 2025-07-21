@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { ToolTip } from './ToolTip';
-import { invoke } from '@tauri-apps/api/core';
+import { useSystemInfo } from '../../contexts/SystemContext';
 
 interface MemorySliderProps {
     value: number; // Value in MB
@@ -11,36 +10,7 @@ interface MemorySliderProps {
 }
 
 export const MemorySlider = ({ value, onChange, disabled = false, className = '' }: MemorySliderProps) => {
-    const [maxMemoryMB, setMaxMemoryMB] = useState(8192); // Default 8GB
-    const [isLoadingMemory, setIsLoadingMemory] = useState(true);
-    const [memoryError, setMemoryError] = useState<string | null>(null);
-
-    useEffect(() => {
-        loadSystemMemory();
-    }, []);
-
-    const loadSystemMemory = async () => {
-        setIsLoadingMemory(true);
-        setMemoryError(null);
-        
-        try {
-            const memoryMB: number = await invoke('get_system_memory_mb');
-            
-            if (memoryMB && memoryMB > 0) {
-                setMaxMemoryMB(memoryMB);
-            } else {
-                throw new Error('Invalid memory value returned');
-            }
-        } catch (error) {
-            console.error('Error loading system memory:', error);
-            setMemoryError(`Failed to detect system memory: ${error}`);
-            console.log('Using fallback memory value: 8192 MB');
-            // Keep default 8GB if we can't get system memory
-            setMaxMemoryMB(8192);
-        } finally {
-            setIsLoadingMemory(false);
-        }
-    };
+    const { systemMemoryMB: maxMemoryMB, isMemoryLoading, memoryError } = useSystemInfo();
 
     const formatMemory = (mb: number): string => {
         if (mb < 1024) {
@@ -90,7 +60,7 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
             </div>
 
             {/* Memory info and error handling */}
-            {isLoadingMemory ? (
+            {isMemoryLoading ? (
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
                     <span>Detecting system memory...</span>
@@ -129,11 +99,11 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
                     step={step}
                     value={value}
                     onChange={(e) => onChange(parseInt(e.target.value))}
-                    disabled={disabled || isLoadingMemory}
+                    disabled={disabled || isMemoryLoading}
                     className={`
                         w-full h-3 rounded-lg appearance-none cursor-pointer transition-all duration-200
                         bg-gray-200
-                        ${disabled || isLoadingMemory ? 'opacity-50 cursor-not-allowed' : ''}
+                        ${disabled || isMemoryLoading ? 'opacity-50 cursor-not-allowed' : ''}
                         memory-slider
                     `}
                     style={{
@@ -203,40 +173,40 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
             <div className="flex space-x-2">
                 <button
                     onClick={() => onChange(1024)}
-                    disabled={disabled || isLoadingMemory}
+                    disabled={disabled || isMemoryLoading}
                     className={`px-3 py-1 text-xs rounded-md border transition-all duration-200 ${
                         value === 1024
                             ? 'bg-blue-100 text-blue-700 border-blue-300'
                             : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
-                    } ${disabled || isLoadingMemory ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    } ${disabled || isMemoryLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                     1GB
                 </button>
                 <button
                     onClick={() => onChange(2048)}
-                    disabled={disabled || isLoadingMemory}
+                    disabled={disabled || isMemoryLoading}
                     className={`px-3 py-1 text-xs rounded-md border transition-all duration-200 ${
                         value === 2048
                             ? 'bg-blue-100 text-blue-700 border-blue-300'
                             : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
-                    } ${disabled || isLoadingMemory ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    } ${disabled || isMemoryLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                     2GB
                 </button>
                 <button
                     onClick={() => onChange(4096)}
-                    disabled={disabled || isLoadingMemory}
+                    disabled={disabled || isMemoryLoading}
                     className={`px-3 py-1 text-xs rounded-md border transition-all duration-200 ${
                         value === 4096
                             ? 'bg-blue-100 text-blue-700 border-blue-300'
                             : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
-                    } ${disabled || isLoadingMemory ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    } ${disabled || isMemoryLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                     4GB
                 </button>
                 <button
                     onClick={() => onChange(Math.round(maxMemoryMB * 0.5))}
-                    disabled={disabled || isLoadingMemory}
+                    disabled={disabled || isMemoryLoading}
                     className="px-3 py-1 text-xs rounded-md border bg-white text-gray-600 border-gray-300 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                     50%

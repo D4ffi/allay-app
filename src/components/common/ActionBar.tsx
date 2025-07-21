@@ -5,9 +5,10 @@ import { CreateServerModal } from '../modals/CreateServerModal';
 
 interface ActionBarProps {
     onCreateServer: (serverData: any) => void;
+    onOpenSettings: () => void;
 }
 
-export const ActionBar = ({ onCreateServer }: ActionBarProps) => {
+export const ActionBar = ({ onCreateServer, onOpenSettings }: ActionBarProps) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -19,7 +20,7 @@ export const ActionBar = ({ onCreateServer }: ActionBarProps) => {
         { icon: Plus, delay: ICON_DELAY * 0.7, tooltip: "Create", onClick: () => setIsModalOpen(true) },
         { icon: SquareMousePointer, delay: ICON_DELAY * 0.65, tooltip: "Edit", onClick: () => {} },
         { icon: Search, delay: ICON_DELAY * 0.6, tooltip: "Search", onClick: () => {} },
-        { icon: Settings2, delay: ICON_DELAY * 0.5, tooltip: "Settings", onClick: () => {}}
+        { icon: Settings2, delay: ICON_DELAY * 0.5, tooltip: "Settings", onClick: onOpenSettings}
     ];
 
     const toggleExpansion = () => {

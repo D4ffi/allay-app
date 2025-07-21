@@ -6,18 +6,19 @@ mod services;
 use std::path::PathBuf;
 use util::{ServerFileManager, ServerInstance, JarCacheManager, CacheStats, ServerPropertiesManager};
 use services::version_manager::{VersionManager, VersionSummary};
-use services::download_service::DownloadService;
-use services::server_management_service::ServerManagementService;
+use services::unified_server_service::UnifiedServerService;
 use models::version::{LoaderType, VersionResponse};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
 
-// Global server management service
+// Global unified server service
 lazy_static::lazy_static! {
-    static ref SERVER_MANAGER: Arc<Mutex<ServerManagementService>> = 
-        Arc::new(Mutex::new(ServerManagementService::new()));
+    static ref UNIFIED_SERVER_SERVICE: Arc<Mutex<UnifiedServerService>> = {
+        let service = UnifiedServerService::new().expect("Failed to initialize UnifiedServerService");
+        Arc::new(Mutex::new(service))
+    };
 }
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -74,6 +75,102 @@ fn remove_server_instance(name: String) -> Result<String, String> {
     manager.remove_instance(&name).map_err(|e| e.to_string())?;
     
     Ok(format!("Server instance '{}' removed successfully", name))
+}
+
+#[tauri::command]
+fn delete_server_completely(name: String) -> Result<String, String> {
+    let config_path = PathBuf::from("storage/server_config.json");
+    let storage_path = PathBuf::from("storage");
+    let manager = ServerFileManager::new(config_path);
+    
+    manager.remove_instance_with_storage(&name, &storage_path).map_err(|e| e.to_string())?;
+    
+    Ok(format!("Server instance '{}' and its files deleted successfully", name))
+}
+
+#[tauri::command]
+fn update_server_description(name: String, description: String) -> Result<String, String> {
+    let config_path = PathBuf::from("storage/server_config.json");
+    let manager = ServerFileManager::new(config_path);
+    
+    // Get the current instance
+    let mut instance = manager.get_instance(&name)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Server instance '{}' not found", name))?;
+    
+    // Update description
+    instance.description = if description.trim().is_empty() {
+        None
+    } else {
+        Some(description.trim().to_string())
+    };
+    
+    // Save the updated instance
+    manager.update_instance(&name, instance).map_err(|e| e.to_string())?;
+    
+    Ok(format!("Server '{}' description updated successfully", name))
+}
+
+#[tauri::command]
+fn update_server_memory(name: String, memory_mb: u32) -> Result<String, String> {
+    let config_path = PathBuf::from("storage/server_config.json");
+    let manager = ServerFileManager::new(config_path);
+    
+    // Get the current instance
+    let mut instance = manager.get_instance(&name)
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Server instance '{}' not found", name))?;
+    
+    // Update memory
+    instance.memory_mb = memory_mb;
+    
+    // For Forge servers, also update user_jvm_args.txt
+    if instance.mod_loader == "forge" {
+        update_forge_jvm_args(&instance.storage_path, memory_mb)
+            .map_err(|e| e.to_string())?;
+    }
+    
+    // Save the updated instance
+    manager.update_instance(&name, instance).map_err(|e| e.to_string())?;
+    
+    Ok(format!("Server '{}' memory updated to {}MB successfully", name, memory_mb))
+}
+
+fn update_forge_jvm_args(server_path: &PathBuf, memory_mb: u32) -> Result<(), std::io::Error> {
+    let jvm_args_path = server_path.join("user_jvm_args.txt");
+    
+    // Convert MB to GB for JVM args
+    let memory_gb = memory_mb / 1024;
+    let memory_arg = format!("-Xmx{}G", memory_gb);
+    
+    if jvm_args_path.exists() {
+        // Read existing content
+        let content = std::fs::read_to_string(&jvm_args_path)?;
+        let mut lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+        
+        // Find and replace existing -Xmx argument or add to the end
+        let mut found = false;
+        for line in &mut lines {
+            if line.trim().starts_with("-Xmx") {
+                *line = memory_arg.clone();
+                found = true;
+                break;
+            }
+        }
+        
+        if !found {
+            lines.push(memory_arg);
+        }
+        
+        // Write back to file
+        let new_content = lines.join("\n");
+        std::fs::write(&jvm_args_path, new_content)?;
+    } else {
+        // Create new file with memory argument
+        std::fs::write(&jvm_args_path, memory_arg)?;
+    }
+    
+    Ok(())
 }
 
 // Version management commands
@@ -164,7 +261,7 @@ async fn download_server_jar(
     minecraft_version: String,
     loader_version: Option<String>,
 ) -> Result<String, String> {
-    let download_service = DownloadService::new().map_err(|e| e.to_string())?;
+    let service = UNIFIED_SERVER_SERVICE.lock().await;
     let storage_path = PathBuf::from("storage").join(&server_name);
     
     let loader_type = match loader.as_str() {
@@ -177,7 +274,7 @@ async fn download_server_jar(
         _ => return Err("Invalid loader type".to_string()),
     };
     
-    match download_service.download_server_jar(
+    match service.download_server_jar(
         loader_type,
         minecraft_version,
         loader_version,
@@ -207,9 +304,9 @@ async fn setup_server(
         _ => return Err("Invalid loader type".to_string()),
     };
     
-    let manager = SERVER_MANAGER.lock().await;
+    let service = UNIFIED_SERVER_SERVICE.lock().await;
     
-    match manager.setup_server(
+    match service.setup_server(
         &server_name,
         loader_type,
         &minecraft_version,
@@ -235,9 +332,17 @@ async fn start_server(server_name: String, loader: String) -> Result<String, Str
         _ => return Err("Invalid loader type".to_string()),
     };
     
-    let manager = SERVER_MANAGER.lock().await;
+    // Get server memory configuration
+    let config_path = PathBuf::from("storage/server_config.json");
+    let file_manager = ServerFileManager::new(config_path);
+    let memory_mb = match file_manager.get_instance(&server_name) {
+        Ok(Some(instance)) => instance.memory_mb,
+        _ => 2048, // Default 2GB if not found
+    };
     
-    match manager.start_server(&server_name, &storage_path, loader_type).await {
+    let service = UNIFIED_SERVER_SERVICE.lock().await;
+    
+    match service.start_server(&server_name, &storage_path, loader_type, memory_mb).await {
         Ok(_) => Ok(format!("Server '{}' started successfully", server_name)),
         Err(e) => Err(format!("Failed to start server '{}': {}", server_name, e)),
     }
@@ -245,9 +350,9 @@ async fn start_server(server_name: String, loader: String) -> Result<String, Str
 
 #[tauri::command]
 async fn stop_server(server_name: String) -> Result<String, String> {
-    let manager = SERVER_MANAGER.lock().await;
+    let service = UNIFIED_SERVER_SERVICE.lock().await;
     
-    match manager.stop_server(&server_name).await {
+    match service.stop_server(&server_name).await {
         Ok(_) => Ok(format!("Server '{}' stopped successfully", server_name)),
         Err(e) => Err(format!("Failed to stop server '{}': {}", server_name, e)),
     }
@@ -255,14 +360,14 @@ async fn stop_server(server_name: String) -> Result<String, String> {
 
 #[tauri::command]
 async fn is_server_running(server_name: String) -> bool {
-    let manager = SERVER_MANAGER.lock().await;
-    manager.is_server_running(&server_name).await
+    let service = UNIFIED_SERVER_SERVICE.lock().await;
+    service.is_server_running(&server_name).await
 }
 
 #[tauri::command]
 async fn get_running_servers() -> Vec<String> {
-    let manager = SERVER_MANAGER.lock().await;
-    manager.get_running_servers().await
+    let service = UNIFIED_SERVER_SERVICE.lock().await;
+    service.get_running_servers().await
 }
 
 // JAR Cache management commands
@@ -343,6 +448,28 @@ fn get_server_motd(server_name: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+fn get_server_max_players(server_name: String) -> Result<u32, String> {
+    let server_path = PathBuf::from("storage").join(&server_name);
+    let properties_path = server_path.join("server.properties");
+    
+    if !properties_path.exists() {
+        return Ok(20); // Default max players
+    }
+    
+    let properties_manager = ServerPropertiesManager::new(properties_path);
+    
+    match properties_manager.get_property("max-players") {
+        Ok(max_players_str) => {
+            match max_players_str.parse::<u32>() {
+                Ok(max_players) => Ok(max_players),
+                Err(_) => Ok(20), // Default if parsing fails
+            }
+        },
+        Err(_) => Ok(20), // Default max players if property not found
+    }
+}
+
+#[tauri::command]
 fn update_server_property(
     server_name: String,
     property_key: String,
@@ -407,6 +534,9 @@ pub fn run() {
             create_server_instance,
             get_all_server_instances,
             remove_server_instance,
+            delete_server_completely,
+            update_server_description,
+            update_server_memory,
             get_minecraft_versions,
             get_all_minecraft_versions,
             get_version_summary,
@@ -422,6 +552,7 @@ pub fn run() {
             clear_jar_cache,
             is_jar_cached,
             get_server_motd,
+            get_server_max_players,
             update_server_property,
             get_system_memory_mb
         ])

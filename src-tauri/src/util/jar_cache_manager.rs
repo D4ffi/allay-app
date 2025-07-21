@@ -72,7 +72,18 @@ impl JarCacheManager {
             LoaderType::Vanilla => format!("server-{}.jar", minecraft_version),
             LoaderType::Fabric => {
                 let loader_ver = loader_version.unwrap_or("unknown");
-                format!("fabric-server-{}-{}.jar", minecraft_version, loader_ver)
+                // Extract clean loader version if it has fabric- prefix and minecraft version
+                let clean_version = if loader_ver.starts_with("fabric-") {
+                    let without_prefix = loader_ver.strip_prefix("fabric-").unwrap_or(loader_ver);
+                    if let Some(dash_pos) = without_prefix.find('-') {
+                        &without_prefix[..dash_pos]
+                    } else {
+                        without_prefix
+                    }
+                } else {
+                    loader_ver
+                };
+                format!("fabric-server-mc.{}-loader.{}-launcher.1.0.3.jar", minecraft_version, clean_version)
             }
             LoaderType::Forge => {
                 let loader_ver = loader_version.unwrap_or("unknown");
@@ -94,8 +105,8 @@ impl JarCacheManager {
             }
             LoaderType::Paper => format!("paper-{}.jar", minecraft_version),
             LoaderType::Quilt => {
-                let loader_ver = loader_version.unwrap_or("unknown");
-                format!("quilt-server-{}-{}.jar", minecraft_version, loader_ver)
+                // Quilt downloads the server profile JSON first
+                "quilt-server-profile.json".to_string()
             }
         }
     }

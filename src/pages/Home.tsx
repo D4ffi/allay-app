@@ -3,7 +3,10 @@ import {AllayLayout} from "../components/common/AllayLayout.tsx";
 import {ActionBar} from "../components/common/ActionBar.tsx";
 import { ServerCard } from "../components/server/ServerCard.tsx";
 import { EditServerModal } from "../components/modals/EditServerModal.tsx";
+import { DeleteServerModal } from "../components/modals/DeleteServerModal.tsx";
+import Settings from "./Settings.tsx";
 import { invoke } from '@tauri-apps/api/core';
+import { useLocale } from '../contexts/LocaleContext';
 
 interface Server {
     id: string;
@@ -26,12 +29,18 @@ interface ServerInstance {
     mod_loader: string;
     mod_loader_version: string;
     storage_path: string;
+    description?: string;
+    memory_mb?: number;
 }
 
 const Home = () => {
+    const { t } = useLocale();
     const [servers, setServers] = useState<Server[]>([]);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedServer, setSelectedServer] = useState<Server | null>(null);
+    const [serverToDelete, setServerToDelete] = useState<Server | null>(null);
+    const [currentPage, setCurrentPage] = useState<'home' | 'settings'>('home');
 
     // Cargar servidores desde el JSON al montar el componente
     useEffect(() => {
@@ -41,20 +50,47 @@ const Home = () => {
     const loadServersFromJSON = async () => {
         try {
             const instances: ServerInstance[] = await invoke('get_all_server_instances');
-            const serverList: Server[] = instances.map((instance) => ({
-                id: instance.name, // Usar el nombre como ID único
-                name: instance.name,
-                description: `${instance.mod_loader.charAt(0).toUpperCase() + instance.mod_loader.slice(1)} server running Minecraft ${instance.version}`,
-                hasCustomImg: false, // Por ahora sin imagen personalizada
-                imgUrl: '',
-                version: instance.version,
-                serverType: instance.mod_loader,
-                loaderVersion: instance.mod_loader_version,
-                isOnline: false,
-                playerCount: 0,
-                maxPlayers: 20,
-                memory: 2048 // Default 2GB in MB
-            }));
+            
+            // Load server data with max players from server.properties and check running status
+            const serverList: Server[] = await Promise.all(
+                instances.map(async (instance) => {
+                    // Fetch max players from server.properties
+                    let maxPlayers = 20; // Default value
+                    try {
+                        maxPlayers = await invoke('get_server_max_players', { 
+                            serverName: instance.name 
+                        });
+                    } catch (error) {
+                        console.warn(`Could not load max players for ${instance.name}, using default:`, error);
+                    }
+
+                    // Check if server is currently running
+                    let isOnline = false;
+                    try {
+                        isOnline = await invoke('is_server_running', { 
+                            serverName: instance.name 
+                        });
+                    } catch (error) {
+                        console.warn(`Could not check running status for ${instance.name}:`, error);
+                    }
+
+                    return {
+                        id: instance.name, // Usar el nombre como ID único
+                        name: instance.name,
+                        description: instance.description || `${instance.mod_loader.charAt(0).toUpperCase() + instance.mod_loader.slice(1)} server running Minecraft ${instance.version}`,
+                        hasCustomImg: false, // Por ahora sin imagen personalizada
+                        imgUrl: '',
+                        version: instance.version,
+                        serverType: instance.mod_loader,
+                        loaderVersion: instance.mod_loader_version,
+                        isOnline: isOnline,
+                        playerCount: 0, // TODO: Get real player count when server is running
+                        maxPlayers: maxPlayers,
+                        memory: instance.memory_mb || 2048 // Use configured memory or default 2GB in MB
+                    };
+                })
+            );
+            
             setServers(serverList);
         } catch (error) {
             console.error('Error loading servers from JSON:', error);
@@ -66,13 +102,49 @@ const Home = () => {
         loadServersFromJSON();
     };
 
-    const handleStartStopServer = (serverId: string) => {
-        setServers(prev => prev.map(server => 
-            server.id === serverId 
-                ? { ...server, isOnline: !server.isOnline }
-                : server
-        ));
-        console.log(`${servers.find(s => s.id === serverId)?.isOnline ? 'Stopping' : 'Starting'} server:`, serverId);
+    const handleStartStopServer = async (serverId: string) => {
+        const server = servers.find(s => s.id === serverId);
+        if (!server) return;
+
+        try {
+            if (server.isOnline) {
+                // Stop server
+                await invoke('stop_server', { 
+                    serverName: server.name 
+                });
+                
+                // Update local state
+                setServers(prev => prev.map(s => 
+                    s.id === serverId 
+                        ? { ...s, isOnline: false, playerCount: 0 }
+                        : s
+                ));
+                
+                console.log(`Server '${server.name}' stopped successfully`);
+            } else {
+                // Start server
+                await invoke('start_server', { 
+                    serverName: server.name,
+                    loader: server.serverType 
+                });
+                
+                // Update local state
+                setServers(prev => prev.map(s => 
+                    s.id === serverId 
+                        ? { ...s, isOnline: true }
+                        : s
+                ));
+                
+                console.log(`Server '${server.name}' started successfully`);
+            }
+        } catch (error) {
+            console.error('Error controlling server:', error);
+            alert(t('errors.serverControlFailed', { 
+                action: server.isOnline ? t('common.stop') : t('common.start'),
+                serverName: server.name,
+                error: String(error) 
+            }));
+        }
     };
 
     const handleEditServer = (serverId: string) => {
@@ -83,15 +155,26 @@ const Home = () => {
         }
     };
 
-    const handleSaveEditedServer = (updatedServerData: any) => {
-        setServers(prev => prev.map(server => 
-            server.id === updatedServerData.name 
-                ? { ...server, ...updatedServerData, id: updatedServerData.name }
-                : server
-        ));
-        
-        console.log('Server updated:', updatedServerData);
-        // TODO: Implementar guardado en backend si es necesario
+    const handleSaveEditedServer = async (updatedServerData: any) => {
+        try {
+            // Save description to server_config.json
+            await invoke('update_server_description', {
+                name: updatedServerData.name,
+                description: updatedServerData.description || ''
+            });
+
+            // Update local state
+            setServers(prev => prev.map(server => 
+                server.id === updatedServerData.name 
+                    ? { ...server, ...updatedServerData, id: updatedServerData.name }
+                    : server
+            ));
+            
+            console.log('Server updated:', updatedServerData);
+        } catch (error) {
+            console.error('Error updating server description:', error);
+            alert(`Error saving server: ${error}`);
+        }
     };
 
     const handleCloseEditModal = () => {
@@ -104,32 +187,60 @@ const Home = () => {
         // TODO: Implement file explorer opening
     };
 
-    const handleDeleteServer = async (serverId: string) => {
+    const handleDeleteServer = (serverId: string) => {
         const server = servers.find(s => s.id === serverId);
-        if (server && confirm(`Are you sure you want to delete "${server.name}"?`)) {
-            try {
-                await invoke('remove_server_instance', { name: server.name });
-                // Recargar servidores desde el JSON después de eliminar
-                loadServersFromJSON();
-                console.log('Deleted server:', serverId);
-            } catch (error) {
-                console.error('Error deleting server:', error);
-                alert(`Error deleting server: ${error}`);
-            }
+        if (server) {
+            setServerToDelete(server);
+            setIsDeleteModalOpen(true);
         }
     };
+
+    const handleConfirmDelete = async () => {
+        if (!serverToDelete) return;
+        
+        try {
+            // Use the new delete command that removes both config and storage folder
+            await invoke('delete_server_completely', { name: serverToDelete.name });
+            // Reload servers from JSON after deletion
+            loadServersFromJSON();
+            console.log('Deleted server:', serverToDelete.name);
+        } catch (error) {
+            console.error('Error deleting server:', error);
+            alert(t('errors.serverDeletionFailed', { error: String(error) }));
+        }
+    };
+
+    const handleCloseDeleteModal = () => {
+        setIsDeleteModalOpen(false);
+        setServerToDelete(null);
+    };
+
+    const handleOpenSettings = () => {
+        setCurrentPage('settings');
+    };
+
+    const handleBackToHome = () => {
+        setCurrentPage('home');
+    };
+
+    if (currentPage === 'settings') {
+        return <Settings onBack={handleBackToHome} />;
+    }
 
     return (
         <div className="h-screen pt-8">
             <AllayLayout />
-            <ActionBar onCreateServer={handleCreateServer} />
+            <ActionBar 
+                onCreateServer={handleCreateServer}
+                onOpenSettings={handleOpenSettings}
+            />
 
             {servers.length === 0 ? (
                 <div className="flex flex-col justify-center items-center h-full gap-4 opacity-30">
                     <img src="/profile-off.png" alt="Allay Off Icon" className="w-30 h-30 drop-shadow-lg drop-shadow-gray-900"/>
                     <p className="text-center text-balance">
-                        No server's saved, to create a new one,<br />
-                        press the + button in the action bar menu.
+                        {t('home.noServers.title')}<br />
+                        {t('home.noServers.description')}
                     </p>
                 </div>
             ) : (
@@ -163,6 +274,17 @@ const Home = () => {
                     onClose={handleCloseEditModal}
                     onSaveServer={handleSaveEditedServer}
                     serverData={selectedServer}
+                />
+            )}
+
+            {/* Delete Server Modal */}
+            {serverToDelete && (
+                <DeleteServerModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={handleCloseDeleteModal}
+                    onConfirmDelete={handleConfirmDelete}
+                    serverName={serverToDelete.name}
+                    serverImage={serverToDelete.imgUrl || '/profile.png'}
                 />
             )}
         </div>

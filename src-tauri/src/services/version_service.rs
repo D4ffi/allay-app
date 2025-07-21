@@ -243,25 +243,55 @@ impl VersionService {
         let mut versions = Vec::new();
         
         // Filter and sort versions (newest first)
+        // Note: NeoForge marks stable releases as "beta", so we only exclude alpha and snapshot versions
         let mut neoforge_versions: Vec<String> = response.versions
             .into_iter()
-            .filter(|v| !v.contains("beta") && !v.contains("alpha"))
+            .filter(|v| !v.contains("alpha") && !v.contains("snapshot"))
             .collect();
         
         neoforge_versions.sort_by(|a, b| {
-            // Sort by version number (newer first)
-            let a_num: f32 = a.split('.').next().unwrap_or("0").parse().unwrap_or(0.0);
-            let b_num: f32 = b.split('.').next().unwrap_or("0").parse().unwrap_or(0.0);
-            b_num.partial_cmp(&a_num).unwrap_or(std::cmp::Ordering::Equal)
+            // Parse version numbers for proper semantic versioning comparison
+            let parse_version = |v: &str| -> Vec<u32> {
+                v.replace("-beta", "")
+                    .split('.')
+                    .filter_map(|s| s.parse().ok())
+                    .collect()
+            };
+            
+            let a_parts = parse_version(a);
+            let b_parts = parse_version(b);
+            
+            // Compare version parts (newest first)
+            for i in 0..std::cmp::max(a_parts.len(), b_parts.len()) {
+                let a_part = a_parts.get(i).unwrap_or(&0);
+                let b_part = b_parts.get(i).unwrap_or(&0);
+                match b_part.cmp(a_part) {
+                    std::cmp::Ordering::Equal => continue,
+                    other => return other,
+                }
+            }
+            std::cmp::Ordering::Equal
         });
 
         if let Some(target_mc_version) = minecraft_version {
             // Filter for specific MC version and get ALL neoforge versions for that MC version
             for (i, version_str) in neoforge_versions.iter().enumerate() {
+                // More precise Minecraft version mapping for NeoForge
                 let mc_version = if version_str.starts_with("21.") {
+                    // NeoForge 21.x targets Minecraft 1.21.x
                     "1.21"
+                } else if version_str.starts_with("20.6") {
+                    // NeoForge 20.6.x targets Minecraft 1.20.6
+                    "1.20.6"
+                } else if version_str.starts_with("20.4") {
+                    // NeoForge 20.4.x targets Minecraft 1.20.4
+                    "1.20.4"
+                } else if version_str.starts_with("20.2") {
+                    // NeoForge 20.2.x targets Minecraft 1.20.2
+                    "1.20.2"
                 } else if version_str.starts_with("20.") {
-                    "1.20"
+                    // Other 20.x versions target Minecraft 1.20.1
+                    "1.20.1"
                 } else {
                     "unknown"
                 };
@@ -282,10 +312,22 @@ impl VersionService {
         } else {
             // Take all versions (no 5 limit)
             for (i, version_str) in neoforge_versions.iter().enumerate() {
+                // More precise Minecraft version mapping for NeoForge
                 let mc_version = if version_str.starts_with("21.") {
+                    // NeoForge 21.x targets Minecraft 1.21.x
                     "1.21"
+                } else if version_str.starts_with("20.6") {
+                    // NeoForge 20.6.x targets Minecraft 1.20.6
+                    "1.20.6"
+                } else if version_str.starts_with("20.4") {
+                    // NeoForge 20.4.x targets Minecraft 1.20.4
+                    "1.20.4"
+                } else if version_str.starts_with("20.2") {
+                    // NeoForge 20.2.x targets Minecraft 1.20.2
+                    "1.20.2"
                 } else if version_str.starts_with("20.") {
-                    "1.20"
+                    // Other 20.x versions target Minecraft 1.20.1
+                    "1.20.1"
                 } else {
                     "unknown"
                 };
@@ -360,8 +402,8 @@ impl VersionService {
     }
 
     async fn get_quilt_versions(&self, minecraft_version: Option<String>) -> Result<VersionResponse> {
-        let url = "https://meta.quiltmc.org/v3/versions";
-        let response: QuiltVersions = self.client.get(url).send().await?.json().await?;
+        let base_url = "https://meta.quiltmc.org/v3/versions";
+        let response: QuiltVersions = self.client.get(base_url).send().await?.json().await?;
 
         let mut versions = Vec::new();
         
@@ -371,19 +413,30 @@ impl VersionService {
                 .find(|v| v.version == target_mc_version);
             
             if let Some(game_version) = target_game_version {
-                let minecraft_version = MinecraftVersion {
-                    id: format!("quilt-{}", game_version.version),
-                    version_type: VersionType::Release,
-                    loader: LoaderType::Quilt,
-                    release_time: Utc::now(),
-                    latest: true,
-                    recommended: game_version.stable,
-                    minecraft_version: Some(game_version.version.clone()),
-                };
-                versions.push(minecraft_version);
+                // Get loader versions for this game version (similar to Fabric pattern)
+                let loader_url = format!("{}/loader/{}", base_url, target_mc_version);
+                let loader_response: Vec<serde_json::Value> = self.client.get(&loader_url).send().await?.json().await?;
+                
+                // Create versions for each loader version (using Fabric-like pattern)
+                for (i, loader) in loader_response.iter().enumerate() {
+                    if let Some(loader_version) = loader["version"].as_str() {
+                        let version_id = format!("quilt-{}-{}", loader_version, game_version.version);
+                        let minecraft_version_obj = MinecraftVersion {
+                            id: version_id,
+                            version_type: VersionType::Release,
+                            loader: LoaderType::Quilt,
+                            release_time: Utc::now(),
+                            latest: i == 0,
+                            recommended: i == 0,
+                            minecraft_version: Some(game_version.version.clone()),
+                        };
+                        versions.push(minecraft_version_obj);
+                    }
+                }
             }
         } else {
-            // Take all stable game versions (no 5 limit)
+            // Return only stable game versions (like Fabric does)
+            // The loader versions will be fetched when a specific MC version is selected
             let stable_game_versions: Vec<_> = response
                 .game
                 .iter()
@@ -391,7 +444,7 @@ impl VersionService {
                 .collect();
 
             for (i, game_version) in stable_game_versions.iter().enumerate() {
-                let minecraft_version = MinecraftVersion {
+                let minecraft_version_obj = MinecraftVersion {
                     id: format!("quilt-{}", game_version.version),
                     version_type: VersionType::Release,
                     loader: LoaderType::Quilt,
@@ -400,7 +453,7 @@ impl VersionService {
                     recommended: i == 0,
                     minecraft_version: Some(game_version.version.clone()),
                 };
-                versions.push(minecraft_version);
+                versions.push(minecraft_version_obj);
             }
         }
 
