@@ -3,16 +3,22 @@ use std::fs;
 use std::path::PathBuf;
 use anyhow::{Result, anyhow};
 use crate::models::version::LoaderType;
+use crate::util::JarCacheManager;
 
 pub struct DownloadService {
     client: Client,
+    jar_cache: JarCacheManager,
 }
 
 impl DownloadService {
-    pub fn new() -> Self {
-        Self {
+    pub fn new() -> Result<Self> {
+        let cache_dir = PathBuf::from("storage/version_cache");
+        let jar_cache = JarCacheManager::new(cache_dir)?;
+        
+        Ok(Self {
             client: Client::new(),
-        }
+            jar_cache,
+        })
     }
 
     pub async fn download_server_jar(
@@ -22,20 +28,18 @@ impl DownloadService {
         loader_version: Option<String>,
         server_path: PathBuf,
     ) -> Result<PathBuf> {
+        let loader_version_ref = loader_version.as_deref();
+        
+        // Check if JAR is cached first
+        if self.jar_cache.is_jar_cached(&loader, &minecraft_version, loader_version_ref) {
+            println!("JAR found in cache, copying to server: {:?}", server_path);
+            return self.jar_cache.copy_cached_jar_to_server(&loader, &minecraft_version, loader_version_ref, &server_path);
+        }
+
+        println!("JAR not in cache, downloading...");
+        
         let download_url = self.get_download_url(&loader, &minecraft_version, &loader_version).await?;
         let jar_name = self.get_jar_filename(&loader, &minecraft_version, &loader_version);
-        let jar_path = server_path.join(&jar_name);
-
-        // Check if JAR already exists (cache)
-        if jar_path.exists() {
-            println!("JAR already exists in cache: {:?}", jar_path);
-            return Ok(jar_path);
-        }
-
-        // Create server directory if it doesn't exist
-        if let Some(parent) = jar_path.parent() {
-            fs::create_dir_all(parent)?;
-        }
 
         println!("Downloading {} from: {}", jar_name, download_url);
 
@@ -47,9 +51,16 @@ impl DownloadService {
         }
 
         let bytes = response.bytes().await?;
-        fs::write(&jar_path, bytes)?;
 
-        println!("Successfully downloaded JAR to: {:?}", jar_path);
+        // Cache the JAR first
+        println!("Caching downloaded JAR...");
+        self.jar_cache.cache_jar(&loader, &minecraft_version, loader_version_ref, &bytes)?;
+
+        // Then copy it to the server directory
+        println!("Copying cached JAR to server: {:?}", server_path);
+        let jar_path = self.jar_cache.copy_cached_jar_to_server(&loader, &minecraft_version, loader_version_ref, &server_path)?;
+
+        println!("Successfully downloaded and cached JAR: {:?}", jar_path);
         Ok(jar_path)
     }
 

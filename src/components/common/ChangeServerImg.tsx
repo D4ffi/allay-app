@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface ChangeServerImgProps {
     defaultImage?: string;
+    initialImageUrl?: string;
     onImageChange?: (imageFile: File | null, imageUrl: string) => void;
     size?: 'sm' | 'md' | 'lg';
     className?: string;
@@ -9,12 +10,20 @@ interface ChangeServerImgProps {
 
 export const ChangeServerImg = ({
     defaultImage = '/profile.png',
+    initialImageUrl,
     onImageChange,
     size = 'md',
     className = ''
 }: ChangeServerImgProps) => {
-    const [currentImage, setCurrentImage] = useState<string>(defaultImage);
+    const [currentImage, setCurrentImage] = useState<string>(initialImageUrl || defaultImage);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Update image when initialImageUrl changes
+    useEffect(() => {
+        if (initialImageUrl) {
+            setCurrentImage(initialImageUrl);
+        }
+    }, [initialImageUrl]);
 
     const sizeClasses = {
         sm: 'w-16 h-16',

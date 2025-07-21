@@ -328,38 +328,42 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
             title="Create New Server"
             size="lg"
         >
-            <div className="space-y-6">
-                {/* Progress Section */}
+            <div className="relative">
+                {/* Fixed Progress Section */}
                 {(isCreatingServer || creationProgress || creationError) && (
-                    <div className="bg-gray-50 rounded-lg p-4 border">
-                        {isCreatingServer && (
-                            <div className="flex items-center space-x-3">
-                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                                <div className="text-sm font-medium text-gray-700">
-                                    {creationProgress || 'Creating server...'}
+                    <div className="sticky top-0 z-10 bg-white border-b border-gray-200 pb-4 mb-6">
+                        <div className="bg-gray-50 rounded-lg p-4 border shadow-sm">
+                            {isCreatingServer && (
+                                <div className="flex items-center space-x-3">
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                                    <div className="text-sm font-medium text-gray-700">
+                                        {creationProgress || 'Creating server...'}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                        {creationError && (
-                            <div className="flex items-center space-x-3 text-red-700">
-                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                </svg>
-                                <div className="text-sm font-medium">{creationError}</div>
-                            </div>
-                        )}
-                        {creationProgress && !isCreatingServer && !creationError && (
-                            <div className="flex items-center space-x-3 text-green-700">
-                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                                <div className="text-sm font-medium">{creationProgress}</div>
-                            </div>
-                        )}
+                            )}
+                            {creationError && (
+                                <div className="flex items-center space-x-3 text-red-700">
+                                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                    </svg>
+                                    <div className="text-sm font-medium">{creationError}</div>
+                                </div>
+                            )}
+                            {creationProgress && !isCreatingServer && !creationError && (
+                                <div className="flex items-center space-x-3 text-green-700">
+                                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    <div className="text-sm font-medium">{creationProgress}</div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
-                {/* Server Image Section */}
+                {/* Scrollable Content */}
+                <div className="space-y-6">
+                    {/* Server Image Section */}
                 <div className="flex justify-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6">
                     <div>
                         <label className="block text-sm font-semibold text-gray-800 mb-4 text-center">
@@ -452,20 +456,21 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                     </div>
                 )}
 
-                {/* Action Buttons */}
-                <div className="flex justify-end space-x-3 pt-6 border-t-2 border-gray-100">
-                    <button
-                        onClick={closeModal}
-                        className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleCreateServer}
-                        className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl"
-                    >
-                        Create Server
-                    </button>
+                    {/* Action Buttons */}
+                    <div className="flex justify-end space-x-3 pt-6 border-t-2 border-gray-100">
+                        <button
+                            onClick={closeModal}
+                            className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleCreateServer}
+                            className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+                        >
+                            Create Server
+                        </button>
+                    </div>
                 </div>
             </div>
         </Modal>

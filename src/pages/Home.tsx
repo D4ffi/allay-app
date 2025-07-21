@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {AllayLayout} from "../components/common/AllayLayout.tsx";
 import {ActionBar} from "../components/common/ActionBar.tsx";
 import { ServerCard } from "../components/server/ServerCard.tsx";
+import { EditServerModal } from "../components/modals/EditServerModal.tsx";
 import { invoke } from '@tauri-apps/api/core';
 
 interface Server {
@@ -16,6 +17,7 @@ interface Server {
     isOnline: boolean;
     playerCount: number;
     maxPlayers: number;
+    memory?: number; // Memory in MB
 }
 
 interface ServerInstance {
@@ -28,6 +30,8 @@ interface ServerInstance {
 
 const Home = () => {
     const [servers, setServers] = useState<Server[]>([]);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedServer, setSelectedServer] = useState<Server | null>(null);
 
     // Cargar servidores desde el JSON al montar el componente
     useEffect(() => {
@@ -37,7 +41,7 @@ const Home = () => {
     const loadServersFromJSON = async () => {
         try {
             const instances: ServerInstance[] = await invoke('get_all_server_instances');
-            const serverList: Server[] = instances.map((instance, index) => ({
+            const serverList: Server[] = instances.map((instance) => ({
                 id: instance.name, // Usar el nombre como ID único
                 name: instance.name,
                 description: `${instance.mod_loader.charAt(0).toUpperCase() + instance.mod_loader.slice(1)} server running Minecraft ${instance.version}`,
@@ -48,7 +52,8 @@ const Home = () => {
                 loaderVersion: instance.mod_loader_version,
                 isOnline: false,
                 playerCount: 0,
-                maxPlayers: 20
+                maxPlayers: 20,
+                memory: 2048 // Default 2GB in MB
             }));
             setServers(serverList);
         } catch (error) {
@@ -56,7 +61,7 @@ const Home = () => {
         }
     };
 
-    const handleCreateServer = (serverData: Omit<Server, 'id'>) => {
+    const handleCreateServer = () => {
         // Recargar servidores desde el JSON después de crear uno nuevo
         loadServersFromJSON();
     };
@@ -71,8 +76,27 @@ const Home = () => {
     };
 
     const handleEditServer = (serverId: string) => {
-        console.log('Edit server:', serverId);
-        // TODO: Implement edit functionality
+        const server = servers.find(s => s.id === serverId);
+        if (server) {
+            setSelectedServer(server);
+            setIsEditModalOpen(true);
+        }
+    };
+
+    const handleSaveEditedServer = (updatedServerData: any) => {
+        setServers(prev => prev.map(server => 
+            server.id === updatedServerData.name 
+                ? { ...server, ...updatedServerData, id: updatedServerData.name }
+                : server
+        ));
+        
+        console.log('Server updated:', updatedServerData);
+        // TODO: Implementar guardado en backend si es necesario
+    };
+
+    const handleCloseEditModal = () => {
+        setIsEditModalOpen(false);
+        setSelectedServer(null);
     };
 
     const handleOpenFolder = (serverId: string) => {
@@ -130,6 +154,16 @@ const Home = () => {
                         />
                     ))}
                 </div>
+            )}
+
+            {/* Edit Server Modal */}
+            {selectedServer && (
+                <EditServerModal
+                    isOpen={isEditModalOpen}
+                    onClose={handleCloseEditModal}
+                    onSaveServer={handleSaveEditedServer}
+                    serverData={selectedServer}
+                />
             )}
         </div>
     );

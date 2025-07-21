@@ -1,6 +1,7 @@
 import React from "react";
 import { Play, Square, Edit, Folder, Trash2 } from 'lucide-react';
 import { ContextMenu } from '../common/ContextMenu';
+import { MinecraftMOTD } from '../common/MinecraftMOTD';
 
 interface ServerCardProps {
     name: string;
@@ -76,7 +77,13 @@ export const ServerCard: React.FC<ServerCardProps> = ({
                     {/* Server Info */}
                     <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">{name}</h3>
-                        <p className="text-gray-600 text-sm mb-3">{description}</p>
+                        <div className="mb-3">
+                            <MinecraftMOTD 
+                                motd={description} 
+                                theme="light"
+                                className="text-sm leading-relaxed"
+                            />
+                        </div>
 
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2">

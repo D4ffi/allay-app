@@ -87,8 +87,48 @@ impl ServerManagementService {
             return Err(anyhow!("Server JAR not found: {:?}", jar_path));
         }
 
-        // For vanilla, the JAR is ready to use directly
-        println!("Vanilla server ready: {:?}", jar_path);
+        // Check if server is already initialized (eula.txt and server.properties will be created later)
+        // We check for world folder or logs folder as indicators of initialization
+        let world_folder = server_path.join("world");
+        let logs_folder = server_path.join("logs");
+        
+        if world_folder.exists() || logs_folder.exists() {
+            println!("Vanilla server already initialized: {:?}", jar_path);
+            return Ok(());
+        }
+
+        println!("Initializing Vanilla server...");
+        println!("JAR path: {:?}", jar_path);
+        println!("Working directory: {:?}", server_path);
+        
+        // Run the server JAR once to generate initial files
+        // This will create the server structure and then stop due to EULA agreement
+        let output = Command::new("java")
+            .args(&[
+                "-Xmx1G",
+                "-Xms512M", 
+                "-jar", 
+                &jar_name,
+                "nogui"
+            ])
+            .current_dir(server_path)
+            .output()
+            .map_err(|e| {
+                if e.kind() == std::io::ErrorKind::NotFound {
+                    anyhow!("Java is not installed or not found in PATH. Please install Java to run Minecraft servers.")
+                } else {
+                    anyhow!("Failed to execute Java: {}", e)
+                }
+            })?;
+        
+        println!("Vanilla server initialization exit status: {:?}", output.status);
+        println!("Vanilla server initialization stdout: {}", String::from_utf8_lossy(&output.stdout));
+        println!("Vanilla server initialization stderr: {}", String::from_utf8_lossy(&output.stderr));
+
+        // The server will exit with non-zero status due to EULA, this is expected
+        // We don't check output.status.success() because the server exits due to EULA not being accepted
+        
+        println!("Vanilla server initialized successfully");
         Ok(())
     }
 
