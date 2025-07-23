@@ -3,7 +3,11 @@ import { Minus, Square, X } from 'lucide-react';
 import { useWindowControls } from '../../hooks/useWindowControls';
 import { ToolTip } from './ToolTip';
 
-export const AllayLayout = () => {
+interface AllayLayoutProps {
+    title?: string;
+}
+
+export const AllayLayout = ({ title = "Home" }: AllayLayoutProps) => {
     const { minimize, toggleMaximize, close, startDrag } = useWindowControls();
 
     return(
@@ -18,7 +22,7 @@ export const AllayLayout = () => {
                     alt="Allay" 
                     className="w-6 h-6"
                 />
-                <p>Home</p>
+                <p>{title}</p>
             </div>
             
             {/* Controles de ventana a la derecha */}

@@ -19,6 +19,7 @@ interface ServerCardProps {
     onEdit?: () => void;
     onOpenFolder?: () => void;
     onDelete?: () => void;
+    onClick?: () => void;
 }
 
 export const ServerCard: React.FC<ServerCardProps> = ({
@@ -35,7 +36,8 @@ export const ServerCard: React.FC<ServerCardProps> = ({
     onStartStop,
     onEdit,
     onOpenFolder,
-    onDelete
+    onDelete,
+    onClick
 }) => {
     const { t } = useLocale();
     const contextMenuItems = [
@@ -64,7 +66,10 @@ export const ServerCard: React.FC<ServerCardProps> = ({
 
     return (
         <ContextMenu items={contextMenuItems}>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4 cursor-pointer">
+            <div 
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4 cursor-pointer"
+                onClick={onClick}
+            >
             <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-4">
                     {/* Server Icon */}

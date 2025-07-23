@@ -5,6 +5,7 @@ import { ServerCard } from "../components/server/ServerCard.tsx";
 import { EditServerModal } from "../components/modals/EditServerModal.tsx";
 import { DeleteServerModal } from "../components/modals/DeleteServerModal.tsx";
 import Settings from "./Settings.tsx";
+import ServerDetails from "./ServerDetails.tsx";
 import { invoke } from '@tauri-apps/api/core';
 import { useLocale } from '../contexts/LocaleContext';
 
@@ -40,7 +41,8 @@ const Home = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedServer, setSelectedServer] = useState<Server | null>(null);
     const [serverToDelete, setServerToDelete] = useState<Server | null>(null);
-    const [currentPage, setCurrentPage] = useState<'home' | 'settings'>('home');
+    const [currentPage, setCurrentPage] = useState<'home' | 'settings' | 'serverDetails'>('home');
+    const [selectedServerForDetails, setSelectedServerForDetails] = useState<Server | null>(null);
 
     // Cargar servidores desde el JSON al montar el componente
     useEffect(() => {
@@ -221,10 +223,23 @@ const Home = () => {
 
     const handleBackToHome = () => {
         setCurrentPage('home');
+        setSelectedServerForDetails(null);
+    };
+
+    const handleServerClick = (serverId: string) => {
+        const server = servers.find(s => s.id === serverId);
+        if (server) {
+            setSelectedServerForDetails(server);
+            setCurrentPage('serverDetails');
+        }
     };
 
     if (currentPage === 'settings') {
         return <Settings onBack={handleBackToHome} />;
+    }
+
+    if (currentPage === 'serverDetails' && selectedServerForDetails) {
+        return <ServerDetails server={selectedServerForDetails} onBack={handleBackToHome} />;
     }
 
     return (
@@ -262,6 +277,7 @@ const Home = () => {
                             onEdit={() => handleEditServer(server.id)}
                             onOpenFolder={() => handleOpenFolder(server.id)}
                             onDelete={() => handleDeleteServer(server.id)}
+                            onClick={() => handleServerClick(server.id)}
                         />
                     ))}
                 </div>
