@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::fs;
 use std::process::Command;
 use crate::services::mod_loader_strategy::ModLoaderStrategy;
-use crate::models::version::LoaderType;
+use crate::models::version::{LoaderType, VersionResponse, MinecraftVersion, VersionType, MojangVersionManifest};
 use crate::util::JarCacheManager;
 
 /// Vanilla Minecraft strategy
@@ -13,7 +13,43 @@ pub struct VanillaStrategy;
 
 #[async_trait]
 impl ModLoaderStrategy for VanillaStrategy {
-    // Uses default implementation from trait
+    async fn get_versions(&self, client: &Client, _minecraft_version: Option<String>) -> Result<VersionResponse> {
+        let url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
+        let response: MojangVersionManifest = client.get(url).send().await?.json().await?;
+
+        let mut versions = Vec::new();
+        let latest_release = response.latest.release.clone();
+
+        // Get ALL release versions (from 1.0 to the latest)
+        let release_versions: Vec<_> = response
+            .versions
+            .iter()
+            .filter(|v| v.version_type == "release")
+            .collect();
+
+        for version in release_versions {
+            let is_latest = version.id == latest_release;
+            let minecraft_version = MinecraftVersion {
+                id: version.id.clone(),
+                version_type: VersionType::Release,
+                loader: LoaderType::Vanilla,
+                release_time: version.release_time,
+                latest: is_latest,
+                recommended: is_latest, // For vanilla, the latest release is recommended
+                minecraft_version: None,
+            };
+            versions.push(minecraft_version);
+        }
+
+        let latest = versions.iter().find(|v| v.latest).cloned();
+        let recommended = versions.iter().find(|v| v.recommended).cloned();
+
+        Ok(VersionResponse {
+            latest,
+            recommended,
+            versions,
+        })
+    }
 
     async fn get_download_url(&self, client: &Client, minecraft_version: &str, _loader_version: &str) -> Result<String> {
         // Get version manifest

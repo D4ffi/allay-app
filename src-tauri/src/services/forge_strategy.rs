@@ -4,8 +4,10 @@ use reqwest::Client;
 use std::path::PathBuf;
 use std::fs;
 use std::process::Command;
+use std::collections::HashMap;
+use chrono::Utc;
 use crate::services::mod_loader_strategy::ModLoaderStrategy;
-use crate::models::version::LoaderType;
+use crate::models::version::{LoaderType, VersionResponse, MinecraftVersion, VersionType};
 use crate::util::JarCacheManager;
 
 /// Forge strategy
@@ -13,7 +15,83 @@ pub struct ForgeStrategy;
 
 #[async_trait]
 impl ModLoaderStrategy for ForgeStrategy {
-    // Uses default implementation from trait
+    async fn get_versions(&self, client: &Client, minecraft_version: Option<String>) -> Result<VersionResponse> {
+        let url = "https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml";
+        let response = client.get(url).send().await?.text().await?;
+
+        // Parse XML manually (simple approach for this case)
+        let mut versions = Vec::new();
+        let version_regex = regex::Regex::new(r"<version>([^<]+)</version>").unwrap();
+        
+        let mut forge_versions: Vec<String> = version_regex
+            .captures_iter(&response)
+            .map(|cap| cap[1].to_string())
+            .collect();
+
+        // Sort versions by MC version (newest first)
+        forge_versions.sort_by(|a, b| {
+            let a_mc = a.split('-').next().unwrap_or("");
+            let b_mc = b.split('-').next().unwrap_or("");
+            b_mc.cmp(a_mc)
+        });
+
+        if let Some(target_mc_version) = minecraft_version {
+            // Filter for specific MC version and get ALL forge versions for that MC version
+            for (i, version_str) in forge_versions.iter().enumerate() {
+                let parts: Vec<&str> = version_str.split('-').collect();
+                if parts.len() >= 2 {
+                    let mc_version = parts[0];
+                    
+                    if mc_version == target_mc_version {
+                        let minecraft_version_obj = MinecraftVersion {
+                            id: format!("forge-{}", version_str),
+                            version_type: VersionType::Release,
+                            loader: LoaderType::Forge,
+                            release_time: Utc::now(),
+                            latest: i == 0,
+                            recommended: i == 0,
+                            minecraft_version: Some(mc_version.to_string()),
+                        };
+                        versions.push(minecraft_version_obj);
+                    }
+                }
+            }
+        } else {
+            // Group by minecraft version and take the latest from each (no 5 limit)
+            let mut mc_versions_seen: HashMap<String, bool> = HashMap::new();
+
+            for (overall_index, version_str) in forge_versions.iter().enumerate() {
+                let parts: Vec<&str> = version_str.split('-').collect();
+                if parts.len() >= 2 {
+                    let mc_version = parts[0];
+
+                    if !mc_versions_seen.contains_key(mc_version) {
+                        mc_versions_seen.insert(mc_version.to_string(), true);
+                        
+                        let minecraft_version_obj = MinecraftVersion {
+                            id: format!("forge-{}", version_str),
+                            version_type: VersionType::Release,
+                            loader: LoaderType::Forge,
+                            release_time: Utc::now(),
+                            latest: overall_index == 0,
+                            recommended: overall_index == 0,
+                            minecraft_version: Some(mc_version.to_string()),
+                        };
+                        versions.push(minecraft_version_obj);
+                    }
+                }
+            }
+        }
+
+        let latest = versions.first().cloned();
+        let recommended = versions.first().cloned();
+
+        Ok(VersionResponse {
+            latest,
+            recommended,
+            versions,
+        })
+    }
     
     async fn get_download_url(&self, _client: &Client, minecraft_version: &str, loader_version: &str) -> Result<String> {
         let clean_version = if loader_version.starts_with("forge-") {

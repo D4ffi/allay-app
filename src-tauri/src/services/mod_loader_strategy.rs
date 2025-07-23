@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use reqwest::Client;
 use std::path::PathBuf;
-use crate::models::version::LoaderType;
+use crate::models::version::{LoaderType, VersionResponse};
 use crate::util::JarCacheManager;
 
 // Import all strategy implementations
@@ -16,6 +16,9 @@ use crate::services::quilt_strategy::QuiltStrategy;
 /// Strategy trait for mod-loader-specific operations
 #[async_trait]
 pub trait ModLoaderStrategy: Send + Sync {
+    /// Get versions for this mod loader
+    async fn get_versions(&self, client: &Client, minecraft_version: Option<String>) -> Result<VersionResponse>;
+    
     /// Get the download URL for this mod loader
     async fn get_download_url(&self, client: &Client, minecraft_version: &str, loader_version: &str) -> Result<String>;
     

@@ -1,19 +1,20 @@
 use crate::models::version::*;
-use crate::services::version_service::VersionService;
+use crate::services::mod_loader_strategy::get_strategy;
 use crate::util::version_cache_manager::{VersionCacheManager, CacheInfo};
 use anyhow::Result;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use reqwest::Client;
 
 pub struct VersionManager {
-    service: VersionService,
+    client: Client,
     cache_manager: VersionCacheManager,
 }
 
 impl VersionManager {
     pub fn new(cache_dir: PathBuf) -> Result<Self> {
         Ok(Self {
-            service: VersionService::new(),
+            client: Client::new(),
             cache_manager: VersionCacheManager::new(cache_dir)?,
         })
     }
@@ -42,8 +43,9 @@ impl VersionManager {
             }
         }
 
-        // Fetch from API
-        let response = self.service.get_versions_for_minecraft(loader.clone(), minecraft_version.clone()).await?;
+        // Fetch from API using strategy pattern
+        let strategy = get_strategy(&loader);
+        let response = strategy.get_versions(&self.client, minecraft_version.clone()).await?;
         
         // Save to cache (only if no specific minecraft version was requested)
         if minecraft_version.is_none() {

@@ -3,8 +3,9 @@ use async_trait::async_trait;
 use reqwest::Client;
 use std::path::PathBuf;
 use std::fs;
+use chrono::Utc;
 use crate::services::mod_loader_strategy::ModLoaderStrategy;
-use crate::models::version::LoaderType;
+use crate::models::version::{LoaderType, VersionResponse, MinecraftVersion, VersionType, QuiltVersions};
 use crate::util::JarCacheManager;
 
 /// Quilt strategy
@@ -12,6 +13,72 @@ pub struct QuiltStrategy;
 
 #[async_trait]
 impl ModLoaderStrategy for QuiltStrategy {
+    async fn get_versions(&self, client: &Client, minecraft_version: Option<String>) -> Result<VersionResponse> {
+        let base_url = "https://meta.quiltmc.org/v3/versions";
+        let response: QuiltVersions = client.get(base_url).send().await?.json().await?;
+
+        let mut versions = Vec::new();
+        
+        if let Some(target_mc_version) = minecraft_version {
+            // Check if the target MC version exists in game versions
+            let target_game_version = response.game.iter()
+                .find(|v| v.version == target_mc_version);
+            
+            if let Some(game_version) = target_game_version {
+                // Get loader versions for this game version (similar to Fabric pattern)
+                let loader_url = format!("{}/loader/{}", base_url, target_mc_version);
+                let loader_response: Vec<serde_json::Value> = client.get(&loader_url).send().await?.json().await?;
+                
+                // Create versions for each loader version (using Fabric-like pattern)
+                for (i, loader) in loader_response.iter().enumerate() {
+                    if let Some(loader_version) = loader["version"].as_str() {
+                        let version_id = format!("quilt-{}-{}", loader_version, game_version.version);
+                        let minecraft_version_obj = MinecraftVersion {
+                            id: version_id,
+                            version_type: VersionType::Release,
+                            loader: LoaderType::Quilt,
+                            release_time: Utc::now(),
+                            latest: i == 0,
+                            recommended: i == 0,
+                            minecraft_version: Some(game_version.version.clone()),
+                        };
+                        versions.push(minecraft_version_obj);
+                    }
+                }
+            }
+        } else {
+            // Return only stable game versions (like Fabric does)
+            // The loader versions will be fetched when a specific MC version is selected
+            let stable_game_versions: Vec<_> = response
+                .game
+                .iter()
+                .filter(|v| v.stable)
+                .collect();
+
+            for (i, game_version) in stable_game_versions.iter().enumerate() {
+                let minecraft_version_obj = MinecraftVersion {
+                    id: format!("quilt-{}", game_version.version),
+                    version_type: VersionType::Release,
+                    loader: LoaderType::Quilt,
+                    release_time: Utc::now(),
+                    latest: i == 0,
+                    recommended: i == 0,
+                    minecraft_version: Some(game_version.version.clone()),
+                };
+                versions.push(minecraft_version_obj);
+            }
+        }
+
+        let latest = versions.first().cloned();
+        let recommended = versions.first().cloned();
+
+        Ok(VersionResponse {
+            latest,
+            recommended,
+            versions,
+        })
+    }
+
     // Custom implementation for Quilt since it downloads JSON profiles, not JARs
     async fn download_server_jar(
         &self, 

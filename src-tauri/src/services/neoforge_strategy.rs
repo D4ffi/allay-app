@@ -4,8 +4,9 @@ use reqwest::Client;
 use std::path::PathBuf;
 use std::fs;
 use std::process::Command;
+use chrono::Utc;
 use crate::services::mod_loader_strategy::ModLoaderStrategy;
-use crate::models::version::LoaderType;
+use crate::models::version::{LoaderType, VersionResponse, MinecraftVersion, VersionType, NeoForgeVersions};
 use crate::util::JarCacheManager;
 
 /// NeoForge strategy
@@ -13,7 +14,124 @@ pub struct NeoForgeStrategy;
 
 #[async_trait]
 impl ModLoaderStrategy for NeoForgeStrategy {
-    // Uses default implementation from trait
+    async fn get_versions(&self, client: &Client, minecraft_version: Option<String>) -> Result<VersionResponse> {
+        let url = "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge";
+        let response: NeoForgeVersions = client.get(url).send().await?.json().await?;
+
+        let mut versions = Vec::new();
+        
+        // Filter and sort versions (newest first)
+        // Note: NeoForge marks stable releases as "beta", so we only exclude alpha and snapshot versions
+        let mut neoforge_versions: Vec<String> = response.versions
+            .into_iter()
+            .filter(|v| !v.contains("alpha") && !v.contains("snapshot"))
+            .collect();
+        
+        neoforge_versions.sort_by(|a, b| {
+            // Parse version numbers for proper semantic versioning comparison
+            let parse_version = |v: &str| -> Vec<u32> {
+                v.replace("-beta", "")
+                    .split('.')
+                    .filter_map(|s| s.parse().ok())
+                    .collect()
+            };
+            
+            let a_parts = parse_version(a);
+            let b_parts = parse_version(b);
+            
+            // Compare version parts (newest first)
+            for i in 0..std::cmp::max(a_parts.len(), b_parts.len()) {
+                let a_part = a_parts.get(i).unwrap_or(&0);
+                let b_part = b_parts.get(i).unwrap_or(&0);
+                match b_part.cmp(a_part) {
+                    std::cmp::Ordering::Equal => continue,
+                    other => return other,
+                }
+            }
+            std::cmp::Ordering::Equal
+        });
+
+        if let Some(target_mc_version) = minecraft_version {
+            // Filter for specific MC version and get ALL neoforge versions for that MC version
+            for (i, version_str) in neoforge_versions.iter().enumerate() {
+                // More precise Minecraft version mapping for NeoForge
+                let mc_version = if version_str.starts_with("21.") {
+                    // NeoForge 21.x targets Minecraft 1.21.x
+                    "1.21"
+                } else if version_str.starts_with("20.6") {
+                    // NeoForge 20.6.x targets Minecraft 1.20.6
+                    "1.20.6"
+                } else if version_str.starts_with("20.4") {
+                    // NeoForge 20.4.x targets Minecraft 1.20.4
+                    "1.20.4"
+                } else if version_str.starts_with("20.2") {
+                    // NeoForge 20.2.x targets Minecraft 1.20.2
+                    "1.20.2"
+                } else if version_str.starts_with("20.") {
+                    // Other 20.x versions target Minecraft 1.20.1
+                    "1.20.1"
+                } else {
+                    "unknown"
+                };
+
+                if mc_version == target_mc_version || (target_mc_version.starts_with(mc_version) && mc_version != "unknown") {
+                    let minecraft_version_obj = MinecraftVersion {
+                        id: format!("neoforge-{}", version_str),
+                        version_type: VersionType::Release,
+                        loader: LoaderType::NeoForge,
+                        release_time: Utc::now(),
+                        latest: i == 0,
+                        recommended: i == 0,
+                        minecraft_version: Some(mc_version.to_string()),
+                    };
+                    versions.push(minecraft_version_obj);
+                }
+            }
+        } else {
+            // Take all versions (no 5 limit)
+            for (i, version_str) in neoforge_versions.iter().enumerate() {
+                // More precise Minecraft version mapping for NeoForge
+                let mc_version = if version_str.starts_with("21.") {
+                    // NeoForge 21.x targets Minecraft 1.21.x
+                    "1.21"
+                } else if version_str.starts_with("20.6") {
+                    // NeoForge 20.6.x targets Minecraft 1.20.6
+                    "1.20.6"
+                } else if version_str.starts_with("20.4") {
+                    // NeoForge 20.4.x targets Minecraft 1.20.4
+                    "1.20.4"
+                } else if version_str.starts_with("20.2") {
+                    // NeoForge 20.2.x targets Minecraft 1.20.2
+                    "1.20.2"
+                } else if version_str.starts_with("20.") {
+                    // Other 20.x versions target Minecraft 1.20.1
+                    "1.20.1"
+                } else {
+                    "unknown"
+                };
+
+                let minecraft_version_obj = MinecraftVersion {
+                    id: format!("neoforge-{}", version_str),
+                    version_type: VersionType::Release,
+                    loader: LoaderType::NeoForge,
+                    release_time: Utc::now(),
+                    latest: i == 0,
+                    recommended: i == 0,
+                    minecraft_version: Some(mc_version.to_string()),
+                };
+                versions.push(minecraft_version_obj);
+            }
+        }
+
+        let latest = versions.first().cloned();
+        let recommended = versions.first().cloned();
+
+        Ok(VersionResponse {
+            latest,
+            recommended,
+            versions,
+        })
+    }
     
     async fn get_download_url(&self, _client: &Client, minecraft_version: &str, loader_version: &str) -> Result<String> {
         let clean_version = if loader_version.starts_with("neoforge-") {

@@ -3,8 +3,9 @@ use async_trait::async_trait;
 use reqwest::Client;
 use std::path::PathBuf;
 use std::fs;
+use chrono::Utc;
 use crate::services::mod_loader_strategy::ModLoaderStrategy;
-use crate::models::version::LoaderType;
+use crate::models::version::{LoaderType, VersionResponse, MinecraftVersion, VersionType, PaperProject};
 use crate::util::JarCacheManager;
 
 /// Paper strategy
@@ -12,7 +13,51 @@ pub struct PaperStrategy;
 
 #[async_trait]
 impl ModLoaderStrategy for PaperStrategy {
-    // Uses default implementation from trait
+    async fn get_versions(&self, client: &Client, minecraft_version: Option<String>) -> Result<VersionResponse> {
+        let url = "https://api.papermc.io/v2/projects/paper";
+        let response: PaperProject = client.get(url).send().await?.json().await?;
+
+        let mut versions = Vec::new();
+        
+        if let Some(target_mc_version) = minecraft_version {
+            // Filter for specific MC version
+            if response.versions.contains(&target_mc_version) {
+                let minecraft_version_obj = MinecraftVersion {
+                    id: format!("paper-{}", target_mc_version),
+                    version_type: VersionType::Release,
+                    loader: LoaderType::Paper,
+                    release_time: Utc::now(),
+                    latest: true,
+                    recommended: true,
+                    minecraft_version: Some(target_mc_version.clone()),
+                };
+                versions.push(minecraft_version_obj);
+            }
+        } else {
+            // Take all minecraft versions supported by Paper (no 5 limit)
+            for (i, mc_version) in response.versions.iter().rev().enumerate() {
+                let minecraft_version_obj = MinecraftVersion {
+                    id: format!("paper-{}", mc_version),
+                    version_type: VersionType::Release,
+                    loader: LoaderType::Paper,
+                    release_time: Utc::now(),
+                    latest: i == 0,
+                    recommended: i == 0,
+                    minecraft_version: Some(mc_version.clone()),
+                };
+                versions.push(minecraft_version_obj);
+            }
+        }
+
+        let latest = versions.first().cloned();
+        let recommended = versions.first().cloned();
+
+        Ok(VersionResponse {
+            latest,
+            recommended,
+            versions,
+        })
+    }
     
     async fn get_download_url(&self, client: &Client, minecraft_version: &str, _loader_version: &str) -> Result<String> {
         // Get latest build for the version
