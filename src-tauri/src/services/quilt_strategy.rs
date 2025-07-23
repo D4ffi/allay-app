@@ -11,44 +11,91 @@ use crate::util::JarCacheManager;
 /// Quilt strategy
 pub struct QuiltStrategy;
 
+#[derive(serde::Deserialize)]
+struct QuiltLoaderVersion {
+    separator: String,
+    build: i32,
+    maven: String,
+    version: String,
+}
+
+#[derive(serde::Deserialize)]
+struct QuiltServerProfile {
+    id: String,
+    #[serde(rename = "inheritsFrom")]
+    inherits_from: String,
+    #[serde(rename = "type")]
+    profile_type: String,
+    #[serde(rename = "mainClass")]
+    main_class: String,
+    #[serde(rename = "launcherMainClass")]
+    launcher_main_class: Option<String>,
+    arguments: QuiltArguments,
+    libraries: Vec<QuiltLibrary>,
+    #[serde(rename = "releaseTime")]
+    release_time: String,
+    time: String,
+}
+
+#[derive(serde::Deserialize)]
+struct QuiltArguments {
+    game: Vec<String>,
+}
+
+#[derive(serde::Deserialize)]
+struct QuiltLibrary {
+    name: String,
+    url: String,
+}
+
 #[async_trait]
 impl ModLoaderStrategy for QuiltStrategy {
     async fn get_versions(&self, client: &Client, minecraft_version: Option<String>) -> Result<VersionResponse> {
-        let base_url = "https://meta.quiltmc.org/v3/versions";
-        let response: QuiltVersions = client.get(base_url).send().await?.json().await?;
-
         let mut versions = Vec::new();
-        
+
         if let Some(target_mc_version) = minecraft_version {
-            // Check if the target MC version exists in game versions
-            let target_game_version = response.game.iter()
-                .find(|v| v.version == target_mc_version);
-            
-            if let Some(game_version) = target_game_version {
-                // Get loader versions for this game version (similar to Fabric pattern)
-                let loader_url = format!("{}/loader/{}", base_url, target_mc_version);
-                let loader_response: Vec<serde_json::Value> = client.get(&loader_url).send().await?.json().await?;
-                
-                // Create versions for each loader version (using Fabric-like pattern)
-                for (i, loader) in loader_response.iter().enumerate() {
-                    if let Some(loader_version) = loader["version"].as_str() {
-                        let version_id = format!("quilt-{}-{}", loader_version, game_version.version);
-                        let minecraft_version_obj = MinecraftVersion {
-                            id: version_id,
-                            version_type: VersionType::Release,
-                            loader: LoaderType::Quilt,
-                            release_time: Utc::now(),
-                            latest: i == 0,
-                            recommended: i == 0,
-                            minecraft_version: Some(game_version.version.clone()),
-                        };
-                        versions.push(minecraft_version_obj);
+            // Get all available loader versions
+            let loader_url = "https://meta.quiltmc.org/v3/versions/loader";
+
+            match client.get(loader_url).send().await {
+                Ok(response) => {
+                    if response.status().is_success() {
+                        let loader_response: Vec<QuiltLoaderVersion> = response.json().await?;
+
+                        // Filter out beta versions (versions containing "beta" or "alpha")
+                        let stable_loader_versions: Vec<_> = loader_response
+                            .iter()
+                            .filter(|v| !v.version.to_lowercase().contains("beta") && !v.version.to_lowercase().contains("alpha"))
+                            .collect();
+
+                        // Create versions for each stable loader version
+                        for (i, loader) in stable_loader_versions.iter().enumerate() {
+                            let version_id = format!("quilt-{}-{}", loader.version, target_mc_version);
+                            let minecraft_version_obj = MinecraftVersion {
+                                id: version_id,
+                                version_type: VersionType::Release,
+                                loader: LoaderType::Quilt,
+                                release_time: Utc::now(),
+                                latest: i == 0,
+                                recommended: i == 0,
+                                minecraft_version: Some(target_mc_version.clone()),
+                            };
+                            versions.push(minecraft_version_obj);
+                        }
+                    } else {
+                        println!("Failed to get Quilt loader versions: HTTP {}", response.status());
                     }
+                }
+                Err(e) => {
+                    println!("Error fetching Quilt loader versions: {}", e);
                 }
             }
         } else {
+            // Get game versions using v3 API
+            let base_url = "https://meta.quiltmc.org/v3/versions";
+            let response: QuiltVersions = client.get(base_url).send().await?.json().await?;
+
             // Return only stable game versions (like Fabric does)
-            // The loader versions will be fetched when a specific MC version is selected
             let stable_game_versions: Vec<_> = response
                 .game
                 .iter()
@@ -81,16 +128,16 @@ impl ModLoaderStrategy for QuiltStrategy {
 
     // Custom implementation for Quilt since it downloads JSON profiles, not JARs
     async fn download_server_jar(
-        &self, 
-        client: &Client, 
+        &self,
+        client: &Client,
         jar_cache: &JarCacheManager,
-        minecraft_version: &str, 
-        loader_version: &str, 
+        minecraft_version: &str,
+        loader_version: &str,
         server_path: &PathBuf,
         loader_type: &LoaderType
     ) -> Result<PathBuf> {
         let loader_version_opt = if loader_version.is_empty() { None } else { Some(loader_version) };
-        
+
         // Check if profile JSON is cached first
         if jar_cache.is_jar_cached(loader_type, minecraft_version, loader_version_opt) {
             println!("Quilt profile found in cache, copying to server: {:?}", server_path);
@@ -98,7 +145,7 @@ impl ModLoaderStrategy for QuiltStrategy {
         }
 
         println!("Quilt profile not in cache, downloading...");
-        
+
         let download_url = self.get_download_url(client, minecraft_version, loader_version).await?;
         let profile_name = self.get_filename(minecraft_version, loader_version);
 
@@ -106,7 +153,7 @@ impl ModLoaderStrategy for QuiltStrategy {
 
         // Download the profile JSON
         let response = client.get(&download_url).send().await?;
-        
+
         if !response.status().is_success() {
             return Err(anyhow!("Failed to download Quilt profile: HTTP {}", response.status()));
         }
@@ -136,19 +183,19 @@ impl ModLoaderStrategy for QuiltStrategy {
         } else {
             loader_version
         };
-        
+
         let profile_url = format!(
             "https://meta.quiltmc.org/v3/versions/loader/{}/{}/server/json",
             minecraft_version, actual_loader_version
         );
-        
+
         Ok(profile_url)
     }
-    
+
     fn get_filename(&self, _minecraft_version: &str, _loader_version: &str) -> String {
         "quilt-server-profile.json".to_string()
     }
-    
+
     async fn setup_server(&self, client: &Client, server_path: &PathBuf, minecraft_version: &str, _loader_version: &str) -> Result<()> {
         let profile_json = server_path.join("quilt-server-profile.json");
         if !profile_json.exists() {
@@ -157,8 +204,8 @@ impl ModLoaderStrategy for QuiltStrategy {
 
         // Check if libraries are already downloaded
         let libraries_dir = server_path.join("libraries");
-        if libraries_dir.exists() {
-            println!("Quilt server libraries already installed");
+        if libraries_dir.exists() && self.check_vanilla_jar_exists(server_path) {
+            println!("Quilt server libraries and vanilla JAR already installed");
             return Ok(());
         }
 
@@ -166,18 +213,14 @@ impl ModLoaderStrategy for QuiltStrategy {
 
         // Read and parse the profile JSON
         let profile_content = fs::read_to_string(&profile_json)?;
-        let profile: serde_json::Value = serde_json::from_str(&profile_content)?;
+        let profile: QuiltServerProfile = serde_json::from_str(&profile_content)?;
 
         // Create libraries directory
         fs::create_dir_all(&libraries_dir)?;
 
         // Download all required libraries
-        if let Some(libraries) = profile["libraries"].as_array() {
-            for library in libraries {
-                if let (Some(name), Some(url)) = (library["name"].as_str(), library["url"].as_str()) {
-                    self.download_library(client, name, url, &libraries_dir).await?;
-                }
-            }
+        for library in &profile.libraries {
+            self.download_library(client, &library.name, &library.url, &libraries_dir).await?;
         }
 
         // Download vanilla server JAR if needed
@@ -194,7 +237,7 @@ impl ModLoaderStrategy for QuiltStrategy {
         println!("Quilt server setup completed");
         Ok(())
     }
-    
+
     fn build_start_command(&self, server_path: &PathBuf, memory_gb: u32, min_memory_gb: u32) -> Result<Vec<String>> {
         // Read Quilt profile to get mainClass and libraries
         let profile_json = server_path.join("quilt-server-profile.json");
@@ -203,15 +246,16 @@ impl ModLoaderStrategy for QuiltStrategy {
         }
 
         let profile_content = fs::read_to_string(&profile_json)?;
-        let profile: serde_json::Value = serde_json::from_str(&profile_content)?;
+        let profile: QuiltServerProfile = serde_json::from_str(&profile_content)?;
 
-        // Get mainClass
-        let main_class = profile["mainClass"].as_str()
-            .ok_or_else(|| anyhow!("mainClass not found in Quilt profile"))?;
+        // Use launcherMainClass if available, otherwise fallback to mainClass
+        let main_class = profile.launcher_main_class
+            .as_ref()
+            .unwrap_or(&profile.main_class);
 
         // Build classpath with all libraries
         let mut classpath = Vec::new();
-        
+
         // Add vanilla server.jar first
         let vanilla_jar = server_path.join("server.jar");
         if vanilla_jar.exists() {
@@ -219,13 +263,9 @@ impl ModLoaderStrategy for QuiltStrategy {
         }
 
         // Add all Quilt libraries
-        if let Some(libraries) = profile["libraries"].as_array() {
-            for library in libraries {
-                if let Some(name) = library["name"].as_str() {
-                    let jar_path = self.get_library_jar_path(name)?;
-                    classpath.push(format!("libraries/{}", jar_path));
-                }
-            }
+        for library in &profile.libraries {
+            let jar_path = self.get_library_jar_path(&library.name)?;
+            classpath.push(format!("libraries/{}", jar_path));
         }
 
         let classpath_str = classpath.join(if cfg!(windows) { ";" } else { ":" });
@@ -251,37 +291,38 @@ impl QuiltStrategy {
         if parts.len() != 3 {
             return Err(anyhow!("Invalid library name format: {}", name));
         }
-        
+
         let group = parts[0].replace('.', "/");
         let artifact = parts[1];
         let version = parts[2];
-        
+
         let jar_name = format!("{}-{}.jar", artifact, version);
         let relative_path = format!("{}/{}/{}/{}", group, artifact, version, jar_name);
-        let download_url = format!("{}{}", base_url.trim_end_matches('/'), relative_path);
-        
+        let download_url = format!("{}{}", base_url.trim_end_matches('/'),
+                                   if relative_path.starts_with('/') { relative_path } else { format!("/{}", relative_path) });
+
         // Create the directory structure
         let lib_dir = libraries_dir.join(&group).join(artifact).join(version);
         fs::create_dir_all(&lib_dir)?;
-        
+
         let jar_path = lib_dir.join(&jar_name);
-        
+
         // Skip if already exists
         if jar_path.exists() {
             println!("Library already exists: {}", jar_name);
             return Ok(());
         }
-        
+
         println!("Downloading library: {} from {}", jar_name, download_url);
-        
+
         let response = client.get(&download_url).send().await?;
         if !response.status().is_success() {
             return Err(anyhow!("Failed to download library {}: HTTP {}", name, response.status()));
         }
-        
+
         let bytes = response.bytes().await?;
         fs::write(&jar_path, &bytes)?;
-        
+
         println!("Downloaded library: {:?}", jar_path);
         Ok(())
     }
@@ -290,25 +331,25 @@ impl QuiltStrategy {
         // Get version manifest
         let manifest_url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
         let manifest: serde_json::Value = client.get(manifest_url).send().await?.json().await?;
-        
+
         // Find the specific version
         let versions = manifest["versions"].as_array()
             .ok_or_else(|| anyhow!("Invalid version manifest"))?;
-        
+
         let version_info = versions.iter()
             .find(|v| v["id"].as_str() == Some(minecraft_version))
             .ok_or_else(|| anyhow!("Minecraft version {} not found", minecraft_version))?;
-        
+
         let version_url = version_info["url"].as_str()
             .ok_or_else(|| anyhow!("Version URL not found"))?;
-        
+
         // Get version details
         let version_details: serde_json::Value = client.get(version_url).send().await?.json().await?;
-        
+
         // Get server JAR URL
         let server_url = version_details["downloads"]["server"]["url"].as_str()
             .ok_or_else(|| anyhow!("Server JAR URL not found for version {}", minecraft_version))?;
-        
+
         Ok(server_url.to_string())
     }
 
@@ -318,12 +359,17 @@ impl QuiltStrategy {
         if parts.len() != 3 {
             return Err(anyhow!("Invalid library name format: {}", name));
         }
-        
+
         let group = parts[0].replace('.', "/");
         let artifact = parts[1];
         let version = parts[2];
-        
+
         let jar_name = format!("{}-{}.jar", artifact, version);
         Ok(format!("{}/{}/{}/{}", group, artifact, version, jar_name))
+    }
+
+    fn check_vanilla_jar_exists(&self, server_path: &PathBuf) -> bool {
+        let vanilla_jar = server_path.join("server.jar");
+        vanilla_jar.exists()
     }
 }
