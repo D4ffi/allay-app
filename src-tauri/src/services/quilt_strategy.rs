@@ -4,12 +4,59 @@ use reqwest::Client;
 use std::path::PathBuf;
 use std::fs;
 use crate::services::mod_loader_strategy::ModLoaderStrategy;
+use crate::models::version::LoaderType;
+use crate::util::JarCacheManager;
 
 /// Quilt strategy
 pub struct QuiltStrategy;
 
 #[async_trait]
 impl ModLoaderStrategy for QuiltStrategy {
+    // Custom implementation for Quilt since it downloads JSON profiles, not JARs
+    async fn download_server_jar(
+        &self, 
+        client: &Client, 
+        jar_cache: &JarCacheManager,
+        minecraft_version: &str, 
+        loader_version: &str, 
+        server_path: &PathBuf,
+        loader_type: &LoaderType
+    ) -> Result<PathBuf> {
+        let loader_version_opt = if loader_version.is_empty() { None } else { Some(loader_version) };
+        
+        // Check if profile JSON is cached first
+        if jar_cache.is_jar_cached(loader_type, minecraft_version, loader_version_opt) {
+            println!("Quilt profile found in cache, copying to server: {:?}", server_path);
+            return jar_cache.copy_cached_jar_to_server(loader_type, minecraft_version, loader_version_opt, server_path);
+        }
+
+        println!("Quilt profile not in cache, downloading...");
+        
+        let download_url = self.get_download_url(client, minecraft_version, loader_version).await?;
+        let profile_name = self.get_filename(minecraft_version, loader_version);
+
+        println!("Downloading {} from: {}", profile_name, download_url);
+
+        // Download the profile JSON
+        let response = client.get(&download_url).send().await?;
+        
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to download Quilt profile: HTTP {}", response.status()));
+        }
+
+        let bytes = response.bytes().await?;
+
+        // Cache the profile first
+        println!("Caching downloaded Quilt profile...");
+        jar_cache.cache_jar(loader_type, minecraft_version, loader_version_opt, &bytes)?;
+
+        // Then copy it to the server directory
+        println!("Copying cached Quilt profile to server: {:?}", server_path);
+        let profile_path = jar_cache.copy_cached_jar_to_server(loader_type, minecraft_version, loader_version_opt, server_path)?;
+
+        println!("Successfully downloaded and cached Quilt profile: {:?}", profile_path);
+        Ok(profile_path)
+    }
 
     async fn get_download_url(&self, _client: &Client, minecraft_version: &str, loader_version: &str) -> Result<String> {
         let actual_loader_version = if loader_version.starts_with("quilt-") {

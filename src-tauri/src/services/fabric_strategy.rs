@@ -4,12 +4,16 @@ use reqwest::Client;
 use std::path::PathBuf;
 use std::fs;
 use crate::services::mod_loader_strategy::ModLoaderStrategy;
+use crate::models::version::LoaderType;
+use crate::util::JarCacheManager;
 
 /// Fabric strategy
 pub struct FabricStrategy;
 
 #[async_trait]
 impl ModLoaderStrategy for FabricStrategy {
+    // Uses default implementation from trait
+
     async fn get_download_url(&self, _client: &Client, minecraft_version: &str, loader_version: &str) -> Result<String> {
         // Extract clean loader version
         let clean_loader_version = if loader_version.starts_with("fabric-") {

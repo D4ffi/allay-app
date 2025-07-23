@@ -1,7 +1,5 @@
 pub mod version_service;
 pub mod version_manager;
-pub mod download_service;
-pub mod server_management_service;
 pub mod mod_loader_strategy;
 pub mod unified_server_service;
 

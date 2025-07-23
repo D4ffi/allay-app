@@ -4,12 +4,16 @@ use reqwest::Client;
 use std::path::PathBuf;
 use std::fs;
 use crate::services::mod_loader_strategy::ModLoaderStrategy;
+use crate::models::version::LoaderType;
+use crate::util::JarCacheManager;
 
 /// Paper strategy
 pub struct PaperStrategy;
 
 #[async_trait]
 impl ModLoaderStrategy for PaperStrategy {
+    // Uses default implementation from trait
+    
     async fn get_download_url(&self, client: &Client, minecraft_version: &str, _loader_version: &str) -> Result<String> {
         // Get latest build for the version
         let builds_url = format!("https://api.papermc.io/v2/projects/paper/versions/{}/builds", minecraft_version);

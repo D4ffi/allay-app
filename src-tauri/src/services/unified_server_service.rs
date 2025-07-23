@@ -36,16 +36,6 @@ impl UnifiedServerService {
         loader_version: Option<String>,
         server_path: PathBuf,
     ) -> Result<PathBuf> {
-        let loader_version_ref = loader_version.as_deref();
-        
-        // Check if JAR is cached first
-        if self.jar_cache.is_jar_cached(&loader, &minecraft_version, loader_version_ref) {
-            println!("JAR found in cache, copying to server: {:?}", server_path);
-            return self.jar_cache.copy_cached_jar_to_server(&loader, &minecraft_version, loader_version_ref, &server_path);
-        }
-
-        println!("JAR not in cache, downloading...");
-        
         // Get the appropriate strategy
         let strategy = get_strategy(&loader);
         
@@ -58,30 +48,15 @@ impl UnifiedServerService {
             }
         };
 
-        let download_url = strategy.get_download_url(&self.client, &minecraft_version, &loader_version_str).await?;
-        let jar_name = strategy.get_filename(&minecraft_version, &loader_version_str);
-
-        println!("Downloading {} from: {}", jar_name, download_url);
-
-        // Download the JAR file
-        let response = self.client.get(&download_url).send().await?;
-        
-        if !response.status().is_success() {
-            return Err(anyhow!("Failed to download JAR: HTTP {}", response.status()));
-        }
-
-        let bytes = response.bytes().await?;
-
-        // Cache the JAR first
-        println!("Caching downloaded JAR...");
-        self.jar_cache.cache_jar(&loader, &minecraft_version, loader_version_ref, &bytes)?;
-
-        // Then copy it to the server directory
-        println!("Copying cached JAR to server: {:?}", server_path);
-        let jar_path = self.jar_cache.copy_cached_jar_to_server(&loader, &minecraft_version, loader_version_ref, &server_path)?;
-
-        println!("Successfully downloaded and cached JAR: {:?}", jar_path);
-        Ok(jar_path)
+        // Delegate download to the strategy
+        strategy.download_server_jar(
+            &self.client,
+            &self.jar_cache,
+            &minecraft_version,
+            &loader_version_str,
+            &server_path,
+            &loader
+        ).await
     }
 
     /// Sets up server using the strategy pattern

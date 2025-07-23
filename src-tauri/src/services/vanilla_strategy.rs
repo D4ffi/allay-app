@@ -5,12 +5,16 @@ use std::path::PathBuf;
 use std::fs;
 use std::process::Command;
 use crate::services::mod_loader_strategy::ModLoaderStrategy;
+use crate::models::version::LoaderType;
+use crate::util::JarCacheManager;
 
 /// Vanilla Minecraft strategy
 pub struct VanillaStrategy;
 
 #[async_trait]
 impl ModLoaderStrategy for VanillaStrategy {
+    // Uses default implementation from trait
+
     async fn get_download_url(&self, client: &Client, minecraft_version: &str, _loader_version: &str) -> Result<String> {
         // Get version manifest
         let manifest_url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";

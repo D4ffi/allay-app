@@ -5,12 +5,16 @@ use std::path::PathBuf;
 use std::fs;
 use std::process::Command;
 use crate::services::mod_loader_strategy::ModLoaderStrategy;
+use crate::models::version::LoaderType;
+use crate::util::JarCacheManager;
 
 /// NeoForge strategy
 pub struct NeoForgeStrategy;
 
 #[async_trait]
 impl ModLoaderStrategy for NeoForgeStrategy {
+    // Uses default implementation from trait
+    
     async fn get_download_url(&self, _client: &Client, minecraft_version: &str, loader_version: &str) -> Result<String> {
         let clean_version = if loader_version.starts_with("neoforge-") {
             loader_version.strip_prefix("neoforge-").unwrap_or(loader_version)
