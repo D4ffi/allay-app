@@ -252,41 +252,17 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
         setIsCreatingServer(true);
         
         try {
-            // Step 1: Create server instance structure
+            // Use the new transactional command that handles all steps with automatic rollback
             setCreationProgress('Creating server instance...');
-            const createResult = await invoke('create_server_instance', {
+            
+            const createResult = await invoke('create_server_transactional', {
                 name: serverName.trim(),
                 version: selectedVersion,
                 modLoader: selectedModLoader,
                 modLoaderVersion: selectedModLoaderVersion || 'none'
             });
             
-            console.log('Server instance created:', createResult);
-            
-            // Step 2: Download server JAR
-            setCreationProgress('Downloading server JAR file...');
-            const downloadResult = await invoke('download_server_jar', {
-                serverName: serverName.trim(),
-                loader: selectedModLoader,
-                minecraftVersion: selectedVersion,
-                loaderVersion: selectedModLoader !== 'vanilla' ? selectedModLoaderVersion : null
-            });
-            
-            console.log('Server JAR downloaded:', downloadResult);
-            
-            // Step 3: Setup server (install, generate files, etc.)
-            setCreationProgress('Setting up server environment...');
-            const setupResult = await invoke('setup_server', {
-                serverName: serverName.trim(),
-                loader: selectedModLoader,
-                minecraftVersion: selectedVersion,
-                loaderVersion: selectedModLoader !== 'vanilla' ? selectedModLoaderVersion : null
-            });
-            
-            console.log('Server setup completed:', setupResult);
-            
-            // Step 4: Complete server setup
-            setCreationProgress('Finalizing server configuration...');
+            console.log('Server created with transaction:', createResult);
             
             // Create the server object for the frontend
             const newServer = {

@@ -1,7 +1,11 @@
+import { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { AllayLayout } from "../components/common/AllayLayout";
 import { MinecraftMOTD } from "../components/common/MinecraftMOTD";
 import { useLocale } from '../contexts/LocaleContext';
+import { useServerState } from '../contexts/ServerStateContext';
+import { NavTittleButton } from "../components/navbar/NavTittleButton.tsx";
+import TerminalPage from "./Terminal";
 
 interface Server {
     id: string;
@@ -23,15 +27,33 @@ interface ServerDetailsProps {
     onBack: () => void;
 }
 
+type ServerDetailsTab = 'overview' | 'terminal' | 'manage' | 'settings';
+
 const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
-    const { t } = useLocale();
+    useLocale();
+    const [activeTab, setActiveTab] = useState<ServerDetailsTab>('overview');
+    const serverState = useServerState();
+    
+    // Estado simple: solo online u offline
+    const status = serverState.getServerStatus(server.name);
+    const isOnline = status === 'online';
+
+    // If terminal tab is active, render terminal page
+    if (activeTab === 'terminal') {
+        return (
+            <TerminalPage 
+                server={server} 
+                onBack={() => setActiveTab('overview')} 
+            />
+        );
+    }
 
     return (
-        <div className="h-screen pt-8">
+        <div className="h-screen">
             <AllayLayout title="Server Details" />
             
             {/* Header with Mini Server Card */}
-            <div className="p-4 pt-12 flex items-center space-x-4">
+            <div className="p-4 flex items-center space-x-6">
                 <button
                     onClick={onBack}
                     className="p-2 rounded hover:bg-gray-200 transition-colors flex-shrink-0"
@@ -40,11 +62,11 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
                 </button>
                 
                 {/* Mini Server Card */}
-                <div className="flex items-center space-x-3 min-w-0">
+                <div className="flex pt-10 items-center space-x-3 min-w-0">
                     {/* Server Icon */}
-                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="w-18 h-18 rounded-lg overflow-hidden flex-shrink-0">
                         <img 
-                            src={server.hasCustomImg ? server.imgUrl : (server.isOnline ? "/profile.png" : "/profile-off.png")}
+                            src={server.hasCustomImg ? server.imgUrl : (isOnline ? "/profile.png" : "/profile-off.png")}
                             alt={`${server.name} server icon`}
                             className="w-full h-full object-cover"
                         />
@@ -78,7 +100,7 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
                                     {server.loaderVersion}
                                 </span>
                             )}
-                            {server.isOnline ? (
+                            {isOnline ? (
                                 <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
                                     Online
                                 </span>
@@ -92,9 +114,35 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
                 </div>
             </div>
 
+            {/* Navigation Bar */}
+            <div className="px-4 pb-4">
+                <nav className="flex justify-center items-center space-x-16 max-w-2xl mx-auto">
+                    <NavTittleButton 
+                        translationKey="overview"
+                        onClick={() => setActiveTab('overview')}
+                        isActive={activeTab === 'overview'}
+                    />
+                    <NavTittleButton 
+                        translationKey="terminal"
+                        onClick={() => setActiveTab('terminal')}
+                        isActive={activeTab === 'terminal'}
+                    />
+                    <NavTittleButton 
+                        translationKey="manage"
+                        onClick={() => setActiveTab('manage')}
+                        isActive={activeTab === 'manage'}
+                    />
+                    <NavTittleButton 
+                        translationKey="settings"
+                        onClick={() => setActiveTab('settings')}
+                        isActive={activeTab === 'settings'}
+                    />
+                </nav>
+            </div>
+
             {/* Server Details Content */}
             <div className="p-4 max-w-4xl mx-auto space-y-6">
-                
+
                 {/* Placeholder content */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4">

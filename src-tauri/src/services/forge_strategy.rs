@@ -212,7 +212,7 @@ impl ModLoaderStrategy for ForgeStrategy {
             let entry = entry?;
             let file_name = entry.file_name().to_string_lossy().to_string();
             if file_name.contains("forge") && file_name.ends_with("server.jar") {
-                let mut args = vec![
+                let args = vec![
                     format!("-Xmx{}G", memory_gb),
                     format!("-Xms{}G", memory_gb / 2),
                     "-jar".to_string(),

@@ -252,7 +252,7 @@ impl ModLoaderStrategy for NeoForgeStrategy {
             let entry = entry?;
             let file_name = entry.file_name().to_string_lossy().to_string();
             if file_name.contains("neoforge") && file_name.ends_with("server.jar") {
-                let mut args = vec![
+                let args = vec![
                     format!("-Xmx{}G", memory_gb),
                     format!("-Xms{}G", memory_gb / 2),
                     "-jar".to_string(),

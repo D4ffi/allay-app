@@ -15,6 +15,28 @@ pub struct ServerInstance {
     pub description: Option<String>,
     #[serde(default = "default_memory")]
     pub memory_mb: u32,
+    #[serde(default)]
+    pub creation_status: ServerCreationStatus,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum ServerCreationStatus {
+    #[serde(rename = "pending")]
+    Pending,
+    #[serde(rename = "jar_downloaded")]
+    JarDownloaded,
+    #[serde(rename = "setup_complete")]
+    SetupComplete,
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "failed")]
+    Failed,
+}
+
+impl Default for ServerCreationStatus {
+    fn default() -> Self {
+        ServerCreationStatus::Pending
+    }
 }
 
 fn default_memory() -> u32 {
@@ -161,6 +183,13 @@ impl ServerFileManager {
         Ok(config.instances.values().cloned().collect())
     }
 
+    pub fn get_server_memory(&self, name: &str) -> Option<u32> {
+        match self.get_instance(name) {
+            Ok(Some(instance)) => Some(instance.memory_mb),
+            _ => None,
+        }
+    }
+
     pub fn instance_exists(&self, name: &str) -> Result<bool, Error> {
         let config = self.load_config()?;
         Ok(config.instances.contains_key(name))
@@ -177,6 +206,44 @@ impl ServerFileManager {
             let config = ServerConfig::new();
             self.save_config(&config)?;
         }
+        Ok(())
+    }
+
+    pub fn update_server_status(&self, name: &str, status: ServerCreationStatus) -> Result<(), Error> {
+        let mut config = self.load_config()?;
+        
+        if let Some(instance) = config.instances.get_mut(name) {
+            instance.creation_status = status;
+            self.save_config(&config)?;
+        } else {
+            return Err(Error::new(
+                ErrorKind::NotFound,
+                format!("Instance with name '{}' not found", name),
+            ));
+        }
+        
+        Ok(())
+    }
+
+    pub fn get_incomplete_servers(&self, base_storage_path: &Path) -> Result<Vec<String>, Error> {
+        let config = self.load_config()?;
+        let mut incomplete_servers = Vec::new();
+        
+        for (name, instance) in &config.instances {
+            if instance.creation_status != ServerCreationStatus::Completed {
+                incomplete_servers.push(name.clone());
+            }
+        }
+        
+        Ok(incomplete_servers)
+    }
+
+    pub fn cleanup_incomplete_server(&self, name: &str, base_storage_path: &Path) -> Result<(), Error> {
+        println!("Cleaning up incomplete server: {}", name);
+        
+        // Remove from config and delete storage directory
+        self.remove_instance_with_storage(name, base_storage_path)?;
+        
         Ok(())
     }
 }
@@ -199,6 +266,7 @@ impl ServerInstance {
             mod_loader_version,
             storage_path,
             memory_mb: default_memory(),
+            creation_status: ServerCreationStatus::Pending,
         })
     }
 }

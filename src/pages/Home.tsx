@@ -51,6 +51,17 @@ const Home = () => {
 
     const loadServersFromJSON = async () => {
         try {
+            // Clean up any incomplete servers from previous sessions
+            console.log('Cleaning up incomplete servers...');
+            try {
+                const cleanedServers: string[] = await invoke('cleanup_incomplete_servers');
+                if (cleanedServers.length > 0) {
+                    console.log('Cleaned up incomplete servers:', cleanedServers);
+                }
+            } catch (error) {
+                console.warn('Error cleaning up incomplete servers:', error);
+            }
+            
             const instances: ServerInstance[] = await invoke('get_all_server_instances');
             
             // Load server data with max players from server.properties and check running status
@@ -104,50 +115,7 @@ const Home = () => {
         loadServersFromJSON();
     };
 
-    const handleStartStopServer = async (serverId: string) => {
-        const server = servers.find(s => s.id === serverId);
-        if (!server) return;
-
-        try {
-            if (server.isOnline) {
-                // Stop server
-                await invoke('stop_server', { 
-                    serverName: server.name 
-                });
-                
-                // Update local state
-                setServers(prev => prev.map(s => 
-                    s.id === serverId 
-                        ? { ...s, isOnline: false, playerCount: 0 }
-                        : s
-                ));
-                
-                console.log(`Server '${server.name}' stopped successfully`);
-            } else {
-                // Start server
-                await invoke('start_server', { 
-                    serverName: server.name,
-                    loader: server.serverType 
-                });
-                
-                // Update local state
-                setServers(prev => prev.map(s => 
-                    s.id === serverId 
-                        ? { ...s, isOnline: true }
-                        : s
-                ));
-                
-                console.log(`Server '${server.name}' started successfully`);
-            }
-        } catch (error) {
-            console.error('Error controlling server:', error);
-            alert(t('errors.serverControlFailed', { 
-                action: server.isOnline ? t('common.stop') : t('common.start'),
-                serverName: server.name,
-                error: String(error) 
-            }));
-        }
-    };
+    // Removed handleStartStopServer - now handled directly by ServerCard
 
     const handleEditServer = (serverId: string) => {
         const server = servers.find(s => s.id === serverId);
@@ -270,10 +238,8 @@ const Home = () => {
                             serverType={server.serverType}
                             version={server.version}
                             loaderVersion={server.loaderVersion}
-                            isOnline={server.isOnline}
                             playerCount={server.playerCount}
                             maxPlayers={server.maxPlayers}
-                            onStartStop={() => handleStartStopServer(server.id)}
                             onEdit={() => handleEditServer(server.id)}
                             onOpenFolder={() => handleOpenFolder(server.id)}
                             onDelete={() => handleDeleteServer(server.id)}

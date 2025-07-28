@@ -3,6 +3,7 @@ import { Play, Square, Edit, Folder, Trash2 } from 'lucide-react';
 import { ContextMenu } from '../common/ContextMenu';
 import { MinecraftMOTD } from '../common/MinecraftMOTD';
 import { useLocale } from '../../contexts/LocaleContext';
+import { useServerState } from '../../contexts/ServerStateContext';
 
 interface ServerCardProps {
     name: string;
@@ -12,10 +13,8 @@ interface ServerCardProps {
     serverType: string;
     version: string;
     loaderVersion: string;
-    isOnline?: boolean;
     playerCount?: number;
     maxPlayers?: number;
-    onStartStop?: () => void;
     onEdit?: () => void;
     onOpenFolder?: () => void;
     onDelete?: () => void;
@@ -30,21 +29,37 @@ export const ServerCard: React.FC<ServerCardProps> = ({
     serverType,
     version = "1.21",
     loaderVersion,
-    isOnline = false,
     playerCount = 0,
     maxPlayers = 20,
-    onStartStop,
     onEdit,
     onOpenFolder,
     onDelete,
     onClick
 }) => {
     const { t } = useLocale();
+    const serverState = useServerState();
+    
+    // Estado simple: solo online u offline (v2)
+    const status = serverState.getServerStatus(name);
+    const isOnline = status === 'online';
+
+    const handleStartStop = async () => {
+        try {
+            if (isOnline) {
+                await serverState.stopServer(name);
+            } else {
+                await serverState.startServer(name);
+            }
+        } catch (error) {
+            console.error(`Failed to ${isOnline ? 'stop' : 'start'} server ${name}:`, error);
+        }
+    };
+
     const contextMenuItems = [
         {
             label: isOnline ? t('serverCard.stopServer') : t('serverCard.startServer'),
             icon: isOnline ? Square : Play,
-            onClick: () => onStartStop?.(),
+            onClick: handleStartStop,
         },
         {
             label: t('serverCard.editServer'),
@@ -124,7 +139,7 @@ export const ServerCard: React.FC<ServerCardProps> = ({
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            onStartStop?.();
+                            handleStartStop();
                         }}
                         className={`
                             flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm

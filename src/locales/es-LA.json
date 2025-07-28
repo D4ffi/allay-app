@@ -168,5 +168,13 @@
     "serverFolder": "Carpeta del servidor",
     "deleting": "Eliminando...",
     "confirmDelete": "Eliminar Servidor"
+  },
+  "serverDetails": {
+    "navigation": {
+      "overview": "Resumen",
+      "terminal": "Terminal",
+      "manage": "Gestión",
+      "settings": "Configuración"
+    }
   }
 }

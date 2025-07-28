@@ -168,5 +168,13 @@
     "serverFolder": "Server folder",
     "deleting": "Deleting...",
     "confirmDelete": "Delete Server"
+  },
+  "serverDetails": {
+    "navigation": {
+      "overview": "Overview",
+      "terminal": "Terminal",
+      "manage": "Manage",
+      "settings": "Settings"
+    }
   }
 }

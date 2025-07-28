@@ -9,6 +9,7 @@ use crate::util::{JarCacheManager, ServerPropertiesManager, ServerProperties};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use rand::Rng;
 
 pub struct UnifiedServerService {
     client: Client,
@@ -215,20 +216,39 @@ impl UnifiedServerService {
         Ok(())
     }
 
+    /// Generates a random RCON password with format "allay_XXXX" (avoiding # to prevent escape issues)
+    fn generate_rcon_password(&self) -> String {
+        let mut rng = rand::thread_rng();
+        let mut password = String::from("allay_");
+        
+        // Generate 4 random characters (alphanumeric only to avoid escape issues)
+        let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for _ in 0..4 {
+            let idx = rng.gen_range(0..chars.len());
+            password.push(chars.chars().nth(idx).unwrap());
+        }
+        
+        password
+    }
+
     fn generate_server_properties(&self, server_path: &PathBuf, server_name: &str) -> Result<()> {
         let properties_path = server_path.join("server.properties");
         
-        // Don't overwrite existing properties
+        // Always generate/overwrite server.properties to ensure correct configuration
         if properties_path.exists() {
-            println!("server.properties already exists, skipping generation");
-            return Ok(());
+            println!("server.properties exists, forcing regeneration with Allay configuration");
+        } else {
+            println!("Creating new server.properties with Allay configuration");
         }
 
         let properties_manager = ServerPropertiesManager::new(properties_path);
         
+        // Generate random RCON password
+        let rcon_password = self.generate_rcon_password();
+        
         // Create default properties and customize for Allay
         let mut properties = ServerProperties::default();
-        properties.motd = format!("{} - Managed by Allay", server_name);
+        properties.motd = format!("A Minecraft Server manage with §bAllay");
         properties.level_name = "world".to_string();
         properties.gamemode = "survival".to_string();
         properties.difficulty = "easy".to_string();
@@ -236,13 +256,19 @@ impl UnifiedServerService {
         properties.online_mode = true;
         properties.pvp = true;
         properties.spawn_protection = 16;
-        properties.enable_command_block = false;
+        properties.enable_command_block = true;
         properties.white_list = false;
-        properties.enable_rcon = false;
         properties.server_port = 25565;
         
+        // Enable RCON and Query by default with generated password
+        properties.enable_rcon = true;
+        properties.rcon_port = 25575;
+        properties.rcon_password = rcon_password.clone();
+        properties.enable_query = true;
+        properties.query_port = 25565;
+        
         properties_manager.save_properties(&properties).map_err(|e| anyhow!("Failed to save server.properties: {}", e))?;
-        println!("Generated server.properties using ServerPropertiesManager");
+        println!("Generated server.properties with RCON enabled (password: {})", rcon_password);
         Ok(())
     }
 }
