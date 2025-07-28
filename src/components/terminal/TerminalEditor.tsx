@@ -61,7 +61,7 @@ export const TerminalEditor = ({ lines, serverName }: TerminalEditorProps) => {
             <div 
                 ref={editorRef}
                 onScroll={handleScroll}
-                className="h-full p-3 overflow-y-auto font-mono text-sm leading-relaxed terminal-scroll"
+                className="absolute inset-0 p-3 overflow-y-auto font-mono text-sm leading-relaxed terminal-scroll"
                 style={{ 
                     backgroundColor: '#2B2B2B', // JetBrains dark theme background
                     scrollbarWidth: 'thin',

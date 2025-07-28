@@ -234,7 +234,7 @@ All other commands are sent to the Minecraft server via RCON.`;
     return (
         <div className="h-full flex flex-col  border border-gray-700 rounded-lg overflow-hidden">
             {/* Terminal Header */}
-            <div className="bg-gray-600 border-b border-gray-700 px-4 py-2 flex items-center justify-between">
+            <div className="bg-gray-600 border-b border-gray-700 px-4 py-2 flex items-center justify-between flex-shrink-0">
                 <div className="text-gray-300 text-sm font-medium">
                     Terminal - {serverName}
                 </div>
@@ -259,7 +259,7 @@ All other commands are sent to the Minecraft server via RCON.`;
             <TerminalEditor lines={lines} serverName={serverName} />
 
             {/* Command Input */}
-            <div className="bg-gray-700 border-t border-gray-700 p-3">
+            <div className="bg-gray-700 border-t border-gray-700 p-3 flex-shrink-0">
                 <form onSubmit={handleCommandSubmit} className="flex items-center space-x-2">
                     <span className="font-mono text-sm shrink-0 text-green-400">
                         $
