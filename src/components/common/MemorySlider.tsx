@@ -42,7 +42,7 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
         <div className={`space-y-4 ${className}`}>
             {/* Header with title and warning */}
             <div className="flex items-center justify-between">
-                <label className="block text-sm font-semibold text-gray-800">
+                <label className="block text-sm font-semibold text-text">
                     Memory Allocation
                 </label>
                 
@@ -52,7 +52,7 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
                         position="left"
                         delay={100}
                     >
-                        <div className="flex items-center text-red-600">
+                        <div className="flex items-center text-danger">
                             <AlertTriangle size={18} className="animate-pulse" />
                         </div>
                     </ToolTip>
@@ -61,31 +61,31 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
 
             {/* Memory info and error handling */}
             {isMemoryLoading ? (
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                <div className="flex items-center space-x-2 text-sm text-text-muted">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-text-muted"></div>
                     <span>Detecting system memory...</span>
                 </div>
             ) : memoryError ? (
                 <div className="space-y-1">
-                    <div className="text-sm text-red-600 font-medium">
+                    <div className="text-sm text-danger font-medium">
                         Memory detection failed
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-text-muted">
                         Using fallback: {formatMemory(maxMemoryMB)} limit
                     </div>
                 </div>
             ) : (
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-text-secondary">
                     System Memory: {formatMemory(maxMemoryMB)}
                 </div>
             )}
 
             {/* Current value display */}
             <div className="flex items-center justify-between">
-                <span className="text-lg font-semibold text-gray-900">
+                <span className="text-lg font-semibold text-text">
                     {formatMemory(value)}
                 </span>
-                <span className={`text-sm font-medium ${isOverThreshold() ? 'text-red-600' : 'text-gray-600'}`}>
+                <span className={`text-sm font-medium ${isOverThreshold() ? 'text-danger' : 'text-text-secondary'}`}>
                     {getMemoryPercentage().toFixed(1)}% of system memory
                 </span>
             </div>
@@ -102,16 +102,16 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
                     disabled={disabled || isMemoryLoading}
                     className={`
                         w-full h-3 rounded-lg appearance-none cursor-pointer transition-all duration-200
-                        bg-gray-200
+                        bg-surface
                         ${disabled || isMemoryLoading ? 'opacity-50 cursor-not-allowed' : ''}
                         memory-slider
                     `}
                     style={{
                         background: `linear-gradient(to right, 
-                            ${isOverThreshold() ? '#dc2626' : '#3b82f6'} 0%, 
-                            ${isOverThreshold() ? '#dc2626' : '#3b82f6'} ${getMemoryPercentage()}%, 
-                            #e5e7eb ${getMemoryPercentage()}%, 
-                            #e5e7eb 100%)`
+                            ${isOverThreshold() ? 'var(--color-danger)' : 'var(--color-secondary)'} 0%, 
+                            ${isOverThreshold() ? 'var(--color-danger)' : 'var(--color-secondary)'} ${getMemoryPercentage()}%, 
+                            var(--color-border) ${getMemoryPercentage()}%, 
+                            var(--color-border) 100%)`
                     }}
                 />
                 
@@ -123,7 +123,7 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
                             height: 20px;
                             width: 20px;
                             border-radius: 50%;
-                            background: ${isOverThreshold() ? '#dc2626' : '#3b82f6'};
+                            background: ${isOverThreshold() ? 'var(--color-danger)' : 'var(--color-secondary)'};
                             cursor: pointer;
                             border: 2px solid white;
                             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -139,7 +139,7 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
                             height: 20px;
                             width: 20px;
                             border-radius: 50%;
-                            background: ${isOverThreshold() ? '#dc2626' : '#3b82f6'};
+                            background: ${isOverThreshold() ? 'var(--color-danger)' : 'var(--color-secondary)'};
                             cursor: pointer;
                             border: 2px solid white;
                             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -163,7 +163,7 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
             </div>
 
             {/* Memory range indicators */}
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-text-muted">
                 <span>Min: {formatMemory(min)}</span>
                 <span className="font-medium">75%: {formatMemory(Math.round(maxMemoryMB * 0.75))}</span>
                 <span>Max: {formatMemory(max)}</span>
@@ -176,8 +176,8 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
                     disabled={disabled || isMemoryLoading}
                     className={`px-3 py-1 text-xs rounded-md border transition-all duration-200 ${
                         value === 1024
-                            ? 'bg-blue-100 text-blue-700 border-blue-300'
-                            : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                            ? 'bg-secondary-light text-secondary border-secondary'
+                            : 'bg-background text-text-secondary border-border hover:border-border-hover'
                     } ${disabled || isMemoryLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                     1GB
@@ -187,8 +187,8 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
                     disabled={disabled || isMemoryLoading}
                     className={`px-3 py-1 text-xs rounded-md border transition-all duration-200 ${
                         value === 2048
-                            ? 'bg-blue-100 text-blue-700 border-blue-300'
-                            : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                            ? 'bg-secondary-light text-secondary border-secondary'
+                            : 'bg-background text-text-secondary border-border hover:border-border-hover'
                     } ${disabled || isMemoryLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                     2GB
@@ -198,8 +198,8 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
                     disabled={disabled || isMemoryLoading}
                     className={`px-3 py-1 text-xs rounded-md border transition-all duration-200 ${
                         value === 4096
-                            ? 'bg-blue-100 text-blue-700 border-blue-300'
-                            : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                            ? 'bg-secondary-light text-secondary border-secondary'
+                            : 'bg-background text-text-secondary border-border hover:border-border-hover'
                     } ${disabled || isMemoryLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                     4GB
@@ -207,7 +207,7 @@ export const MemorySlider = ({ value, onChange, disabled = false, className = ''
                 <button
                     onClick={() => onChange(Math.round(maxMemoryMB * 0.5))}
                     disabled={disabled || isMemoryLoading}
-                    className="px-3 py-1 text-xs rounded-md border bg-white text-gray-600 border-gray-300 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="px-3 py-1 text-xs rounded-md border bg-background text-text-secondary border-border hover:border-border-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                     50%
                 </button>

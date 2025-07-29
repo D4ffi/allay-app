@@ -72,7 +72,7 @@ export const ContextMenu = ({ items, children }: ContextMenuProps) => {
             {isOpen && (
                 <div
                     ref={menuRef}
-                    className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px]"
+                    className="fixed z-50 bg-background border border-border rounded-lg shadow-lg py-1 min-w-[160px]"
                     style={{
                         left: `${position.x}px`,
                         top: `${position.y}px`,
@@ -87,9 +87,9 @@ export const ContextMenu = ({ items, children }: ContextMenuProps) => {
                                 disabled={item.disabled}
                                 className={`
                                     w-full px-3 py-2 text-left text-sm flex items-center space-x-2
-                                    hover:bg-gray-50 transition-colors duration-150
-                                    ${item.disabled ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 cursor-pointer'}
-                                    ${item.destructive ? 'text-red-600 hover:bg-red-50' : ''}
+                                    hover:bg-surface-hover transition-colors duration-150
+                                    ${item.disabled ? 'text-text-muted cursor-not-allowed' : 'text-text cursor-pointer'}
+                                    ${item.destructive ? 'text-danger hover:bg-danger-light' : ''}
                                 `}
                             >
                                 {Icon && (

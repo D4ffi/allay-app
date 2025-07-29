@@ -22,7 +22,7 @@ export const AllayLayout = ({ title = "Home" }: AllayLayoutProps) => {
                     alt="Allay" 
                     className="w-6 h-6"
                 />
-                <p>{title}</p>
+                <p className="text-text font-medium">{title}</p>
             </div>
             
             {/* Controles de ventana a la derecha */}
@@ -32,7 +32,7 @@ export const AllayLayout = ({ title = "Home" }: AllayLayoutProps) => {
             >
                 <ToolTip content="Minimize" position="bottom" delay={300}>
                     <button 
-                        className="p-2 hover:bg-gray-200/50 rounded cursor-pointer"
+                        className="p-2 hover:bg-surface-hover rounded cursor-pointer text-text-secondary hover:text-text transition-colors"
                         onClick={minimize}
                     >
                         <Minus size={16} />
@@ -40,7 +40,7 @@ export const AllayLayout = ({ title = "Home" }: AllayLayoutProps) => {
                 </ToolTip>
                 <ToolTip content="Maximize" position="bottom" delay={300}>
                     <button 
-                        className="p-2 hover:bg-gray-200/50 rounded cursor-pointer"
+                        className="p-2 hover:bg-surface-hover rounded cursor-pointer text-text-secondary hover:text-text transition-colors"
                         onClick={toggleMaximize}
                     >
                         <Square size={16} />
@@ -48,7 +48,7 @@ export const AllayLayout = ({ title = "Home" }: AllayLayoutProps) => {
                 </ToolTip>
                 <ToolTip content="Close" position="bottom" delay={300}>
                     <button 
-                        className="p-2 hover:bg-red-500/50 rounded cursor-pointer"
+                        className="p-2 hover:bg-danger/50 rounded cursor-pointer text-text-secondary hover:text-white transition-colors"
                         onClick={close}
                     >
                         <X size={16} />

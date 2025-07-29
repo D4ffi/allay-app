@@ -178,18 +178,18 @@ export const EditServerModal = ({ isOpen, onClose, onSaveServer, serverData }: E
             <div className="relative">
                 {/* Progress/Error Section */}
                 {(isSaving || saveError) && (
-                    <div className="sticky top-0 z-10 bg-white border-b border-gray-200 pb-4 mb-6">
-                        <div className="bg-gray-50 rounded-lg p-4 border shadow-sm">
+                    <div className="sticky top-0 z-10 bg-background border-b border-border pb-4 mb-6">
+                        <div className="bg-surface rounded-lg p-4 border border-border shadow-sm">
                             {isSaving && (
                                 <div className="flex items-center space-x-3">
                                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                                    <div className="text-sm font-medium text-gray-700">
+                                    <div className="text-sm font-medium text-text">
                                         Saving server changes...
                                     </div>
                                 </div>
                             )}
                             {saveError && (
-                                <div className="flex items-center space-x-3 text-red-700">
+                                <div className="flex items-center space-x-3 text-danger">
                                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                     </svg>
@@ -203,9 +203,9 @@ export const EditServerModal = ({ isOpen, onClose, onSaveServer, serverData }: E
                 {/* Scrollable Content */}
                 <div className="space-y-6">
                     {/* Server Image Section */}
-                    <div className="flex justify-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6">
+                    <div className="flex justify-center rounded-xl p-6">
                         <div>
-                            <label className="block text-sm font-semibold text-gray-800 mb-4 text-center">
+                            <label className="block text-sm font-semibold text-text mb-4 text-center">
                                 Server Icon
                             </label>
                             <ChangeServerImg
@@ -219,7 +219,7 @@ export const EditServerModal = ({ isOpen, onClose, onSaveServer, serverData }: E
 
                     {/* Server Name Section */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-800 mb-3">
+                        <label className="block text-sm font-semibold text-text mb-3">
                             Server Name
                         </label>
                         <input
@@ -228,10 +228,10 @@ export const EditServerModal = ({ isOpen, onClose, onSaveServer, serverData }: E
                             value={serverName}
                             onChange={(e) => setServerName(e.target.value)}
                             disabled={isSaving}
-                            className={`w-full border-2 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 transition-all duration-200 ${
+                            className={`w-full border-2 rounded-lg px-4 py-3 text-text placeholder-text-muted transition-all duration-200 ${
                                 isSaving 
-                                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60' 
-                                    : 'border-gray-200 bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                                    ? 'border-border bg-surface cursor-not-allowed opacity-60' 
+                                    : 'border-border bg-background hover:border-border-hover focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary'
                             }`}
                         />
                     </div>
@@ -247,10 +247,10 @@ export const EditServerModal = ({ isOpen, onClose, onSaveServer, serverData }: E
 
                     {/* Description Type Section */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-800 mb-4">
+                        <label className="block text-sm font-semibold text-text mb-4">
                             Server Description
                         </label>
-                        <div className="bg-gray-50 rounded-xl p-4">
+                        <div className="bg-surface rounded-xl p-4">
                             <RadioGroup
                                 name="descriptionType"
                                 options={descriptionOptions}
@@ -265,7 +265,7 @@ export const EditServerModal = ({ isOpen, onClose, onSaveServer, serverData }: E
                     {/* Custom Description Input */}
                     {descriptionType === 'custom' && (
                         <div className="transition-all duration-300 ease-in-out animate-in slide-in-from-top-2">
-                            <label className="block text-sm font-semibold text-gray-800 mb-3">
+                            <label className="block text-sm font-semibold text-text mb-3">
                                 Custom Description
                             </label>
                             <textarea
@@ -274,10 +274,10 @@ export const EditServerModal = ({ isOpen, onClose, onSaveServer, serverData }: E
                                 onChange={(e) => setCustomDescription(e.target.value)}
                                 disabled={isSaving}
                                 rows={3}
-                                className={`w-full border-2 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 transition-all duration-200 resize-none ${
+                                className={`w-full border-2 rounded-lg px-4 py-3 text-text placeholder-text-muted transition-all duration-200 resize-none ${
                                     isSaving 
-                                        ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60' 
-                                        : 'border-gray-200 bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                                        ? 'border-border bg-surface cursor-not-allowed opacity-60' 
+                                        : 'border-border bg-background hover:border-border-hover focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary'
                                 }`}
                             />
                         </div>
@@ -286,10 +286,10 @@ export const EditServerModal = ({ isOpen, onClose, onSaveServer, serverData }: E
                     {/* MOTD Preview */}
                     {descriptionType === 'motd' && (
                         <div className="transition-all duration-300 ease-in-out animate-in slide-in-from-top-2">
-                            <label className="block text-sm font-semibold text-gray-800 mb-3">
+                            <label className="block text-sm font-semibold text-text mb-3">
                                 MOTD Preview
                             </label>
-                            <div className="bg-gray-900 rounded-lg p-4 border-2 border-gray-300">
+                            <div className="bg-gray-900 rounded-lg p-4 border-2 border-border">
                                 {isLoadingMotd ? (
                                     <div className="flex items-center space-x-3">
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -305,43 +305,43 @@ export const EditServerModal = ({ isOpen, onClose, onSaveServer, serverData }: E
                     )}
 
                     {/* Server Info Display */}
-                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                        <h3 className="text-sm font-semibold text-blue-800 mb-2">Server Information</h3>
+                    <div className="bg-secondary-light rounded-lg p-4 border border-secondary">
+                        <h3 className="text-sm font-semibold text-secondary mb-2">Server Information</h3>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                                <span className="text-blue-600 font-medium">Version:</span>
-                                <span className="text-blue-700 ml-2">{serverData.version}</span>
+                                <span className="text-secondary font-medium">Version:</span>
+                                <span className="text-text ml-2">{serverData.version}</span>
                             </div>
                             <div>
-                                <span className="text-blue-600 font-medium">Type:</span>
-                                <span className="text-blue-700 ml-2 capitalize">{serverData.serverType}</span>
+                                <span className="text-secondary font-medium">Type:</span>
+                                <span className="text-text ml-2 capitalize">{serverData.serverType}</span>
                             </div>
                             {serverData.loaderVersion && (
                                 <div>
-                                    <span className="text-blue-600 font-medium">Loader Version:</span>
-                                    <span className="text-blue-700 ml-2">{serverData.loaderVersion}</span>
+                                    <span className="text-secondary font-medium">Loader Version:</span>
+                                    <span className="text-text ml-2">{serverData.loaderVersion}</span>
                                 </div>
                             )}
                             <div>
-                                <span className="text-blue-600 font-medium">Max Players:</span>
-                                <span className="text-blue-700 ml-2">{serverData.maxPlayers}</span>
+                                <span className="text-secondary font-medium">Max Players:</span>
+                                <span className="text-text ml-2">{serverData.maxPlayers}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end space-x-3 pt-6 border-t-2 border-gray-100">
+                    <div className="flex justify-end space-x-3 pt-6 border-t-2 border-border">
                         <button
                             onClick={closeModal}
                             disabled={isSaving}
-                            className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="px-6 py-3 text-sm font-semibold text-text-secondary bg-background border-2 border-border rounded-lg hover:bg-surface hover:border-border-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSaveServer}
                             disabled={isSaving}
-                            className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="px-6 py-3 text-sm font-semibold text-white bg-primary border border-transparent rounded-lg hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             {isSaving ? 'Saving...' : 'Save Changes'}
                         </button>

@@ -477,6 +477,26 @@ impl RconManager {
         // No heartbeat needed for ephemeral connections
     }
 
+    /// Handle server going offline - automatically disconnect RCON and stop heartbeat
+    pub fn handle_server_offline(&self, server_name: &str) {
+        // Stop heartbeat first
+        crate::services::rcon_global::get_heartbeat_manager().stop_heartbeat(server_name.to_string());
+        
+        // Disconnect RCON connection
+        let mut connections = self.connections.lock().unwrap();
+        if let Some(connection) = connections.remove(server_name) {
+            drop(connection); // This will call disconnect in the Drop implementation
+            
+            // Log the automatic disconnection
+            let loggers = self.loggers.lock().unwrap();
+            if let Some(logger) = loggers.get(server_name) {
+                logger.log_disconnection("Automatic disconnection - server went offline");
+            }
+            
+            println!("🔌 RCON automatically disconnected for offline server: {}", server_name);
+        }
+    }
+
     pub fn disconnect_all(&self) {
         let mut connections = self.connections.lock().unwrap();
         for (_, connection) in connections.iter_mut() {

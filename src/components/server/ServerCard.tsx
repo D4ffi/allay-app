@@ -82,7 +82,7 @@ export const ServerCard: React.FC<ServerCardProps> = ({
     return (
         <ContextMenu items={contextMenuItems}>
             <div 
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4 cursor-pointer"
+                className="bg-background rounded-lg shadow-sm border border-border p-4 mb-4 cursor-pointer hover:border-border-hover transition-colors"
                 onClick={onClick}
             >
             <div className="flex items-start justify-between">
@@ -98,7 +98,7 @@ export const ServerCard: React.FC<ServerCardProps> = ({
 
                     {/* Server Info */}
                     <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">{name}</h3>
+                        <h3 className="text-lg font-semibold text-text mb-1">{name}</h3>
                         <div className="mb-3">
                             <MinecraftMOTD 
                                 motd={description} 
@@ -109,23 +109,23 @@ export const ServerCard: React.FC<ServerCardProps> = ({
 
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2">
-                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                            <span className="px-2 py-1 bg-surface text-text-secondary text-xs rounded-full">
                                 {serverType}
                             </span>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                            <span className="px-2 py-1 bg-secondary-light text-secondary text-xs rounded-full">
                                 {version}
                             </span>
                             {loaderVersion && (
-                                <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                                <span className="px-2 py-1 bg-accent-light text-accent text-xs rounded-full">
                                     {loaderVersion}
                                 </span>
                             )}
                             {isOnline ? (
-                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                <span className="px-2 py-1 bg-success-light text-success text-xs rounded-full">
                                     {t('serverCard.running')}
                                 </span>
                             ) : (
-                                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                <span className="px-2 py-1 bg-surface text-text-muted text-xs rounded-full">
                                     {t('serverCard.offline')}
                                 </span>
                             )}
@@ -144,10 +144,10 @@ export const ServerCard: React.FC<ServerCardProps> = ({
                         className={`
                             flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm
                             ${isOnline 
-                                ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg' 
-                                : 'bg-green-500 hover:bg-green-600 text-white shadow-lg'
+                                ? 'bg-danger hover:bg-danger-hover text-white shadow-lg' 
+                                : 'bg-success hover:bg-success-hover text-white shadow-lg'
                             }
-                            hover:scale-105 active:scale-95
+                            hover:scale-105 active:scale-95 hover:cursor-pointer
                         `}
                         title={isOnline ? t('serverCard.stopServer') : t('serverCard.startServer')}
                     >
@@ -166,10 +166,10 @@ export const ServerCard: React.FC<ServerCardProps> = ({
 
                     {/* Player Count */}
                     <div className="text-right">
-                        <span className="text-lg font-semibold text-gray-900">
+                        <span className="text-lg font-semibold text-text">
                             {playerCount}/{maxPlayers}
                         </span>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-text-muted">
                             {t('serverCard.players')}
                         </p>
                     </div>

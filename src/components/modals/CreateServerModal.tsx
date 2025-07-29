@@ -307,18 +307,18 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
             <div className="relative">
                 {/* Fixed Progress Section */}
                 {(isCreatingServer || creationProgress || creationError) && (
-                    <div className="sticky top-0 z-10 bg-white border-b border-gray-200 pb-4 mb-6">
-                        <div className="bg-gray-50 rounded-lg p-4 border shadow-sm">
+                    <div className="sticky top-0 z-10 bg-background border-b border-border pb-4 mb-6">
+                        <div className="bg-surface rounded-lg p-4 border border-border shadow-sm">
                             {isCreatingServer && (
                                 <div className="flex items-center space-x-3">
                                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                                    <div className="text-sm font-medium text-gray-700">
+                                    <div className="text-sm font-medium text-text">
                                         {creationProgress || 'Creating server...'}
                                     </div>
                                 </div>
                             )}
                             {creationError && (
-                                <div className="flex items-center space-x-3 text-red-700">
+                                <div className="flex items-center space-x-3 text-danger">
                                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                     </svg>
@@ -326,7 +326,7 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                                 </div>
                             )}
                             {creationProgress && !isCreatingServer && !creationError && (
-                                <div className="flex items-center space-x-3 text-green-700">
+                                <div className="flex items-center space-x-3 text-success">
                                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
@@ -340,9 +340,9 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                 {/* Scrollable Content */}
                 <div className="space-y-6">
                     {/* Server Image Section */}
-                <div className="flex justify-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6">
+                <div className="flex justify-center rounded-xl p-6">
                     <div>
-                        <label className="block text-sm font-semibold text-gray-800 mb-4 text-center">
+                        <label className="block text-sm font-semibold text-text mb-4 text-center">
                             Server Icon
                         </label>
                         <ChangeServerImg
@@ -355,7 +355,7 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
 
                 {/* Server Name Section */}
                 <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-3">
+                    <label className="block text-sm font-semibold text-text mb-3">
                         Server Name
                     </label>
                     <input
@@ -364,21 +364,21 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                         value={serverName}
                         onChange={(e) => setServerName(e.target.value)}
                         disabled={isCreatingServer}
-                        className={`w-full border-2 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 transition-all duration-200 ${
+                        className={`w-full border-2 rounded-lg px-4 py-3 text-text placeholder-text-muted transition-all duration-200 ${
                             isCreatingServer 
-                                ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60' 
-                                : 'border-gray-200 bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                                ? 'border-border bg-surface cursor-not-allowed opacity-60' 
+                                : 'border-border bg-background hover:border-border-hover focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary'
                         }`}
                     />
                 </div>
 
                 {/* Minecraft Version Section */}
                 <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-3">
+                    <label className="block text-sm font-semibold text-text mb-3">
                         Minecraft Version
                     </label>
                     {versionsError && (
-                        <div className="mb-3 p-3 text-sm text-red-700 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
+                        <div className="mb-3 p-3 text-sm text-danger bg-danger-light border-l-4 border-danger rounded-r-lg">
                             {versionsError}
                         </div>
                     )}
@@ -394,10 +394,10 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
 
                 {/* Mod Loader Section */}
                 <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-4">
+                    <label className="block text-sm font-semibold text-text mb-4">
                         Mod Loader
                     </label>
-                    <div className="bg-gray-50 rounded-xl p-4">
+                    <div className="bg-surface rounded-xl p-4">
                         <RadioGroup
                             name="modLoader"
                             options={modLoaders}
@@ -412,7 +412,7 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                 {/* Loader Version Section */}
                 {selectedVersion && selectedModLoader && selectedModLoader !== 'vanilla' && (
                     <div className="transition-all duration-300 ease-in-out animate-in slide-in-from-top-2">
-                        <label className="block text-sm font-semibold text-gray-800 mb-3">
+                        <label className="block text-sm font-semibold text-text mb-3">
                             {selectedModLoader.charAt(0).toUpperCase() + selectedModLoader.slice(1)} Version
                         </label>
                         <Dropdown
@@ -433,16 +433,16 @@ export const CreateServerModal = ({ isOpen, onClose, onCreateServer }: CreateSer
                 )}
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end space-x-3 pt-6 border-t-2 border-gray-100">
+                    <div className="flex justify-end space-x-3 pt-6 border-t-2 border-border">
                         <button
                             onClick={closeModal}
-                            className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm"
+                            className="px-6 py-3 text-sm font-semibold text-text-secondary bg-background border-2 border-border rounded-lg hover:bg-surface hover:border-border-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 shadow-sm"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleCreateServer}
-                            className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+                            className="px-6 py-3 text-sm font-semibold text-white bg-primary border border-transparent rounded-lg hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl"
                         >
                             Create Server
                         </button>

@@ -49,14 +49,14 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
     }
 
     return (
-        <div className="h-screen">
+        <div className="h-screen bg-surface">
             <AllayLayout title="Server Details" />
             
             {/* Header with Mini Server Card */}
             <div className="p-4 flex items-center space-x-6">
                 <button
                     onClick={onBack}
-                    className="p-2 rounded hover:bg-gray-200 transition-colors flex-shrink-0"
+                    className="p-2 rounded hover:bg-surface-hover transition-colors flex-shrink-0 hover:cursor-pointer text-text"
                 >
                     <ArrowLeft size={20} />
                 </button>
@@ -74,7 +74,7 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
 
                     {/* Server Info */}
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-xl font-bold text-gray-900 truncate">
+                        <h1 className="text-xl font-bold text-text truncate">
                             {server.name}
                         </h1>
                         
@@ -89,23 +89,23 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
 
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2">
-                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                            <span className="px-2 py-1 bg-surface text-text-secondary text-xs rounded-full">
                                 {server.serverType}
                             </span>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                            <span className="px-2 py-1 bg-secondary-light text-secondary text-xs rounded-full">
                                 {server.version}
                             </span>
                             {server.loaderVersion && (
-                                <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                                <span className="px-2 py-1 bg-accent-light text-accent text-xs rounded-full">
                                     {server.loaderVersion}
                                 </span>
                             )}
                             {isOnline ? (
-                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                <span className="px-2 py-1 bg-success-light text-success text-xs rounded-full">
                                     Online
                                 </span>
                             ) : (
-                                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                <span className="px-2 py-1 bg-surface text-text-muted text-xs rounded-full">
                                     Offline
                                 </span>
                             )}
@@ -144,8 +144,8 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
             <div className="p-4 max-w-4xl mx-auto space-y-6">
 
                 {/* Placeholder content */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                <div className="bg-background rounded-lg shadow-sm border border-border p-6">
+                    <h2 className="text-lg font-semibold text-text mb-4">
                         Server Information
                     </h2>
                     <p className="text-gray-500 text-sm">

@@ -211,7 +211,7 @@ const Home = () => {
     }
 
     return (
-        <div className="h-screen pt-8">
+        <div className="h-screen pt-8 bg-surface">
             <AllayLayout />
             <ActionBar 
                 onCreateServer={handleCreateServer}
@@ -221,7 +221,7 @@ const Home = () => {
             {servers.length === 0 ? (
                 <div className="flex flex-col justify-center items-center h-full gap-4 opacity-30">
                     <img src="/profile-off.png" alt="Allay Off Icon" className="w-30 h-30 drop-shadow-lg drop-shadow-gray-900"/>
-                    <p className="text-center text-balance">
+                    <p className="text-center text-balance text-text-muted">
                         {t('home.noServers.title')}<br />
                         {t('home.noServers.description')}
                     </p>

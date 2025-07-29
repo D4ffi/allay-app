@@ -1,5 +1,98 @@
 @import "tailwindcss";
 
+/* Allay Theme Configuration */
+@theme {
+  /* Allay Light Theme (Default) */
+  --color-primary: #22c55e;
+  --color-primary-hover: #16a34a;
+  --color-primary-light: #dcfce7;
+  --color-secondary: #3b82f6;
+  --color-secondary-hover: #2563eb;
+  --color-secondary-light: #dbeafe;
+  --color-accent: #f59e0b;
+  --color-accent-hover: #d97706;
+  --color-accent-light: #fef3c7;
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-surface-hover: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-light: #fecaca;
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-light: #fef3c7;
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  --color-success-light: #d1fae5;
+}
+
+@layer base {
+  /* Allay Dark Theme */
+  [data-theme='allay-dark'] {
+    --color-primary: #40cadd;
+    --color-primary-hover: #3aa3b1;
+    --color-primary-light: #21616a;
+    --color-secondary: #0b8697;
+    --color-secondary-hover: #0c5c67;
+    --color-secondary-light: #0b424a;
+    --color-accent: #f59e0b;
+    --color-accent-hover: #d97706;
+    --color-accent-light: #451a03;
+    --color-background: #192027;
+    --color-surface: #222831;
+    --color-surface-hover: #313743;
+    --color-border: #475569;
+    --color-border-hover: #64748b;
+    --color-text: #f8fafc;
+    --color-text-secondary: #cbd5e1;
+    --color-text-muted: #94a3b8;
+    --color-danger: #ef4444;
+    --color-danger-hover: #dc2626;
+    --color-danger-light: #450a0a;
+    --color-warning: #f59e0b;
+    --color-warning-hover: #d97706;
+    --color-warning-light: #451a03;
+    --color-success: #65cbdd;
+    --color-success-hover: #4a9faf;
+    --color-success-light: #396c78;
+  }
+
+  /* Allay Light Theme (Explicit) */
+  [data-theme='allay'] {
+    --color-primary: #22c55e;
+    --color-primary-hover: #16a34a;
+    --color-primary-light: #dcfce7;
+    --color-secondary: #3b82f6;
+    --color-secondary-hover: #2563eb;
+    --color-secondary-light: #dbeafe;
+    --color-accent: #f59e0b;
+    --color-accent-hover: #d97706;
+    --color-accent-light: #fef3c7;
+    --color-background: #ffffff;
+    --color-surface: #f8fafc;
+    --color-surface-hover: #f1f5f9;
+    --color-border: #e2e8f0;
+    --color-border-hover: #cbd5e1;
+    --color-text: #0f172a;
+    --color-text-secondary: #475569;
+    --color-text-muted: #64748b;
+    --color-danger: #ef4444;
+    --color-danger-hover: #dc2626;
+    --color-danger-light: #fecaca;
+    --color-warning: #f59e0b;
+    --color-warning-hover: #d97706;
+    --color-warning-light: #fef3c7;
+    --color-success: #10b981;
+    --color-success-hover: #059669;
+    --color-success-light: #d1fae5;
+  }
+}
+
 /* Prevent global scrolling */
 html, body {
   height: 100%;
@@ -17,20 +110,20 @@ html, body {
 }
 
 .terminal-scroll::-webkit-scrollbar-track {
-  background: #2b2b2b;
+  background: var(--color-surface);
   border-radius: 4px;
 }
 
 .terminal-scroll::-webkit-scrollbar-thumb {
-  background: #4a4a4a;
+  background: var(--color-border);
   border-radius: 4px;
-  border: 1px solid #2b2b2b;
+  border: 1px solid var(--color-surface);
 }
 
 .terminal-scroll::-webkit-scrollbar-thumb:hover {
-  background: #5a5a5a;
+  background: var(--color-border-hover);
 }
 
 .terminal-scroll::-webkit-scrollbar-thumb:active {
-  background: #6a6a6a;
+  background: var(--color-text-muted);
 }

@@ -56,13 +56,13 @@ export const RadioGroup = ({
                             className={`
                                 flex items-start space-x-3 p-3 rounded-lg border transition-all duration-200
                                 ${disabled 
-                                    ? 'cursor-not-allowed opacity-50 bg-gray-50 border-gray-200' 
-                                    : 'cursor-pointer hover:bg-gray-50'
+                                    ? 'cursor-not-allowed opacity-50 bg-surface border-border' 
+                                    : 'cursor-pointer hover:bg-surface-hover'
                                 }
                                 ${!disabled && isSelected 
-                                    ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' 
+                                    ? 'border-primary bg-primary-light ring-1 ring-primary' 
                                     : !disabled 
-                                        ? 'border-gray-300 bg-white hover:border-gray-400'
+                                        ? 'border-border bg-background hover:border-border-hover'
                                         : ''
                                 }
                             `}
@@ -78,13 +78,13 @@ export const RadioGroup = ({
                                     className={`
                                         w-4 h-4 border-2 rounded-full appearance-none transition-all duration-200
                                         ${disabled 
-                                            ? 'cursor-not-allowed border-gray-300 bg-gray-100' 
-                                            : 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                                            ? 'cursor-not-allowed border-border bg-surface' 
+                                            : 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2'
                                         }
                                         ${!disabled && isSelected 
-                                            ? 'border-blue-500 bg-blue-500' 
+                                            ? 'border-primary bg-primary' 
                                             : !disabled 
-                                                ? 'border-gray-300 bg-white hover:border-blue-400'
+                                                ? 'border-border bg-background hover:border-primary'
                                                 : ''
                                         }
                                     `}
@@ -99,10 +99,10 @@ export const RadioGroup = ({
                                 <div className={`
                                     text-sm font-medium transition-colors duration-200
                                     ${disabled 
-                                        ? 'text-gray-400' 
+                                        ? 'text-text-muted' 
                                         : isSelected 
-                                            ? 'text-blue-900' 
-                                            : 'text-gray-900'
+                                            ? 'text-primary' 
+                                            : 'text-text'
                                     }
                                 `}>
                                     {option.label}
@@ -111,10 +111,10 @@ export const RadioGroup = ({
                                     <div className={`
                                         text-xs mt-1 transition-colors duration-200
                                         ${disabled 
-                                            ? 'text-gray-300' 
+                                            ? 'text-text-muted' 
                                             : isSelected 
-                                                ? 'text-blue-700' 
-                                                : 'text-gray-500'
+                                                ? 'text-primary' 
+                                                : 'text-text-secondary'
                                         }
                                     `}>
                                         {option.description}

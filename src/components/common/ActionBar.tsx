@@ -57,7 +57,7 @@ export const ActionBar = ({ onCreateServer, onOpenSettings }: ActionBarProps) =>
                                 delay={300}
                             >
                                 <button
-                                    className="ml-2 p-2 rounded hover:bg-gray-400/50 cursor-pointer"
+                                    className="ml-2 p-2 rounded hover:bg-surface-hover cursor-pointer text-text-secondary hover:text-text transition-colors"
                                     onClick={onClick}
                                 >
                                     <Icon size={16} />
@@ -75,7 +75,7 @@ export const ActionBar = ({ onCreateServer, onOpenSettings }: ActionBarProps) =>
                     <button
                         onClick={toggleExpansion}
                         className={`
-                            p-2 rounded hover:bg-gray-400/50 cursor-pointer
+                            p-2 rounded hover:bg-surface-hover cursor-pointer text-text-secondary hover:text-text
                             transition-all ease-in-out
                             ${isExpanded ? 'ml-2' : 'ml-0'}
                         `}

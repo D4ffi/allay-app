@@ -40,7 +40,7 @@ export const Modal = ({
         >
             <div 
                 className={`
-                    bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]}
+                    bg-background rounded-lg shadow-xl w-full ${sizeClasses[size]}
                     max-h-[90vh] overflow-hidden
                     transform transition-all duration-200 ease-out
                     animate-in zoom-in-95 fade-in-0
@@ -48,14 +48,14 @@ export const Modal = ({
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900">
+                <div className="flex items-center justify-between p-4 border-b border-border">
+                    <h2 className="text-lg font-semibold text-text">
                         {title}
                     </h2>
                     <ToolTip content="Close" position="bottom" delay={300}>
                         <button
                             onClick={onClose}
-                            className="p-1 rounded hover:bg-red-500/50 cursor-pointer transition-colors"
+                            className="p-1 rounded hover:bg-danger/50 cursor-pointer transition-colors text-text-secondary hover:text-white"
                         >
                             <X size={20} />
                         </button>

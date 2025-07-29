@@ -315,6 +315,12 @@ impl ServerMonitor {
                         server_state.last_status_change = now;
                         server_state.consecutive_failures = 0;
                         server_state.consecutive_successes = 0;
+                        
+                        // Handle RCON cleanup when server goes offline
+                        if new_status == ServerMonitorStatus::Offline {
+                            let rcon_manager = rcon_manager.lock().await;
+                            rcon_manager.handle_server_offline(&server_name);
+                        }
                     } else {
                         let time_remaining = min_change_interval.saturating_sub(time_since_last_change);
                         println!("🕰️ Suppressing status change for {} ({}s remaining for stability)", 
