@@ -38,6 +38,26 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
     const status = serverState.getServerStatus(server.name);
     const isOnline = status === 'online';
 
+    // Function to get loader-specific badge color
+    const getLoaderBadgeColor = (loader: string) => {
+        switch (loader.toLowerCase()) {
+            case 'vanilla':
+                return 'var(--color-vanilla-badge)';
+            case 'fabric':
+                return 'var(--color-fabric-badge)';
+            case 'forge':
+                return 'var(--color-forge-badge)';
+            case 'neoforge':
+                return 'var(--color-neoforge-badge)';
+            case 'paper':
+                return 'var(--color-paper-badge)';
+            case 'quilt':
+                return 'var(--color-quilt-badge)';
+            default:
+                return 'var(--color-vanilla-badge)';
+        }
+    };
+
     // If terminal tab is active, render terminal page
     if (activeTab === 'terminal') {
         return (
@@ -89,19 +109,19 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
 
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2">
-                            <span className="px-2 py-1 bg-surface text-text-secondary text-xs rounded-full">
+                            <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: getLoaderBadgeColor(server.serverType), color: 'var(--color-text-loader-badge)'}}>
                                 {server.serverType}
                             </span>
-                            <span className="px-2 py-1 bg-secondary-light text-secondary text-xs rounded-full">
+                            <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: 'var(--color-version-badge)', color: 'var(--color-text-version-badge)'}}>
                                 {server.version}
                             </span>
                             {server.loaderVersion && (
-                                <span className="px-2 py-1 bg-accent-light text-accent text-xs rounded-full">
+                                <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: getLoaderBadgeColor(server.serverType), color: 'var(--color-text-loader-badge)'}}>
                                     {server.loaderVersion}
                                 </span>
                             )}
                             {isOnline ? (
-                                <span className="px-2 py-1 bg-success-light text-success text-xs rounded-full">
+                                <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: 'var(--color-online-badge)', color: 'var(--color-text-online-badge)'}}>
                                     Online
                                 </span>
                             ) : (

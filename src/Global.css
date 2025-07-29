@@ -9,6 +9,17 @@
   --color-secondary: #3b82f6;
   --color-secondary-hover: #2563eb;
   --color-secondary-light: #dbeafe;
+  --color-version-badge: #bfdbfe;
+  --color-text-version-badge: #1e40af;
+  --color-vanilla-badge: #f3f4f6;
+  --color-fabric-badge: #f0f9ff;
+  --color-forge-badge: #eff6ff;
+  --color-neoforge-badge: #fef3c7;
+  --color-paper-badge: #f1f5f9;
+  --color-quilt-badge: #f3e8ff;
+  --color-text-loader-badge: #374151;
+  --color-online-badge: #dcfce7;
+  --color-text-online-badge: #059669;
   --color-accent: #f59e0b;
   --color-accent-hover: #d97706;
   --color-accent-light: #fef3c7;
@@ -16,6 +27,7 @@
   --color-surface: #f8fafc;
   --color-surface-hover: #f1f5f9;
   --color-border: #e2e8f0;
+  --color-serverCard-border: #e2e8f0;
   --color-border-hover: #cbd5e1;
   --color-text: #0f172a;
   --color-text-secondary: #475569;
@@ -40,6 +52,17 @@
     --color-secondary: #0b8697;
     --color-secondary-hover: #0c5c67;
     --color-secondary-light: #0b424a;
+    --color-version-badge: #0b424a;
+    --color-text-version-badge: #94bfe6;
+    --color-vanilla-badge: #3e3e3e;
+    --color-fabric-badge: #70685d;
+    --color-forge-badge: #24406c;
+    --color-neoforge-badge: #985915;
+    --color-paper-badge: #272424;
+    --color-quilt-badge: #5f3795;
+    --color-text-loader-badge: #cfcfd3;
+    --color-online-badge: #659fa6;
+    --color-text-online-badge: #16dfdf;
     --color-accent: #f59e0b;
     --color-accent-hover: #d97706;
     --color-accent-light: #451a03;
@@ -47,6 +70,7 @@
     --color-surface: #222831;
     --color-surface-hover: #313743;
     --color-border: #475569;
+    --color-serverCard-border: #13181e;
     --color-border-hover: #64748b;
     --color-text: #f8fafc;
     --color-text-secondary: #cbd5e1;
@@ -70,6 +94,17 @@
     --color-secondary: #3b82f6;
     --color-secondary-hover: #2563eb;
     --color-secondary-light: #dbeafe;
+    --color-version-badge: #bfdbfe;
+    --color-text-version-badge: #1e40af;
+    --color-vanilla-badge: #f3f4f6;
+    --color-fabric-badge: #f0f9ff;
+    --color-forge-badge: #eff6ff;
+    --color-neoforge-badge: #fef3c7;
+    --color-paper-badge: #f1f5f9;
+    --color-quilt-badge: #f3e8ff;
+    --color-text-loader-badge: #374151;
+    --color-online-badge: #dcfce7;
+    --color-text-online-badge: #059669;
     --color-accent: #f59e0b;
     --color-accent-hover: #d97706;
     --color-accent-light: #fef3c7;
@@ -77,6 +112,7 @@
     --color-surface: #f8fafc;
     --color-surface-hover: #f1f5f9;
     --color-border: #e2e8f0;
+    --color-serverCard-border: #e2e8f0;
     --color-border-hover: #cbd5e1;
     --color-text: #0f172a;
     --color-text-secondary: #475569;
@@ -91,6 +127,7 @@
     --color-success-hover: #059669;
     --color-success-light: #d1fae5;
   }
+
 }
 
 /* Prevent global scrolling */
@@ -102,6 +139,15 @@ html, body {
 #root {
   height: 100%;
   overflow: hidden;
+}
+
+/* ServerCard border styles */
+.server-card-border {
+  border-color: var(--color-serverCard-border);
+}
+
+.server-card-border:hover {
+  border-color: var(--color-border-hover);
 }
 
 /* Terminal scrollbar styles */

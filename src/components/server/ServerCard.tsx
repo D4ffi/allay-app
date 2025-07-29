@@ -43,6 +43,26 @@ export const ServerCard: React.FC<ServerCardProps> = ({
     const status = serverState.getServerStatus(name);
     const isOnline = status === 'online';
 
+    // Function to get loader-specific badge color
+    const getLoaderBadgeColor = (loader: string) => {
+        switch (loader.toLowerCase()) {
+            case 'vanilla':
+                return 'var(--color-vanilla-badge)';
+            case 'fabric':
+                return 'var(--color-fabric-badge)';
+            case 'forge':
+                return 'var(--color-forge-badge)';
+            case 'neoforge':
+                return 'var(--color-neoforge-badge)';
+            case 'paper':
+                return 'var(--color-paper-badge)';
+            case 'quilt':
+                return 'var(--color-quilt-badge)';
+            default:
+                return 'var(--color-vanilla-badge)';
+        }
+    };
+
     const handleStartStop = async () => {
         try {
             if (isOnline) {
@@ -82,7 +102,7 @@ export const ServerCard: React.FC<ServerCardProps> = ({
     return (
         <ContextMenu items={contextMenuItems}>
             <div 
-                className="bg-background rounded-lg shadow-sm border border-border p-4 mb-4 cursor-pointer hover:border-border-hover transition-colors"
+                className="bg-background rounded-lg shadow-sm border p-4 mb-4 cursor-pointer transition-colors server-card-border"
                 onClick={onClick}
             >
             <div className="flex items-start justify-between">
@@ -109,19 +129,19 @@ export const ServerCard: React.FC<ServerCardProps> = ({
 
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2">
-                            <span className="px-2 py-1 bg-surface text-text-secondary text-xs rounded-full">
+                            <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: getLoaderBadgeColor(serverType), color: 'var(--color-text-loader-badge)'}}>
                                 {serverType}
                             </span>
-                            <span className="px-2 py-1 bg-secondary-light text-secondary text-xs rounded-full">
+                            <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: 'var(--color-version-badge)', color: 'var(--color-text-version-badge)'}}>
                                 {version}
                             </span>
                             {loaderVersion && (
-                                <span className="px-2 py-1 bg-accent-light text-accent text-xs rounded-full">
+                                <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: getLoaderBadgeColor(serverType), color: 'var(--color-text-loader-badge)'}}>
                                     {loaderVersion}
                                 </span>
                             )}
                             {isOnline ? (
-                                <span className="px-2 py-1 bg-success-light text-success text-xs rounded-full">
+                                <span className="px-2 py-1 text-xs rounded-full" style={{backgroundColor: 'var(--color-online-badge)', color: 'var(--color-text-online-badge)'}}>
                                     {t('serverCard.running')}
                                 </span>
                             ) : (
