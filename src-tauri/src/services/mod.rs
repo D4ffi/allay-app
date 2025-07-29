@@ -2,6 +2,7 @@ pub mod version_service;
 pub mod version_manager;
 pub mod mod_loader_strategy;
 pub mod unified_server_service;
+pub mod server_order_service;
 
 // RCON services
 pub mod rcon_service;

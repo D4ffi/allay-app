@@ -9,6 +9,7 @@ use services::version_manager::{VersionManager, VersionSummary};
 use services::unified_server_service::UnifiedServerService;
 use services::rcon_manager::{RconManager, RconConfig};
 use services::simple_rcon_monitor::{SimpleRconMonitor, ServerStatus};
+use services::server_order_service::{get_server_order, save_server_order, update_server_position};
 use models::version::{LoaderType, VersionResponse};
 use models::query::{QueryResponse, QueryConfig};
 use services::query_service::QueryService;
@@ -1099,7 +1100,10 @@ pub fn run() {
             check_server_rcon_enabled,
             fix_server_rcon_password,
             get_server_rcon_password,
-            get_system_memory_mb
+            get_system_memory_mb,
+            get_server_order,
+            save_server_order,
+            update_server_position
         ])
         .setup(|app| {
             // Set app handle for event emission in Simple RCON Monitor

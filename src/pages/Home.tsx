@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {AllayLayout} from "../components/common/AllayLayout.tsx";
 import {ActionBar} from "../components/common/ActionBar.tsx";
-import { ServerCard } from "../components/server/ServerCard.tsx";
+import { DraggableServerList } from "../components/server/DraggableServerList.tsx";
+import { ScrollContainer } from "../components/common/ScrollContainer.tsx";
 import { EditServerModal } from "../components/modals/EditServerModal.tsx";
 import { DeleteServerModal } from "../components/modals/DeleteServerModal.tsx";
 import Settings from "./Settings.tsx";
@@ -37,6 +38,7 @@ interface ServerInstance {
 const Home = () => {
     const { t } = useLocale();
     const [servers, setServers] = useState<Server[]>([]);
+    const [serverOrder, setServerOrder] = useState<string[]>([]);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedServer, setSelectedServer] = useState<Server | null>(null);
@@ -44,12 +46,25 @@ const Home = () => {
     const [currentPage, setCurrentPage] = useState<'home' | 'settings' | 'serverDetails'>('home');
     const [selectedServerForDetails, setSelectedServerForDetails] = useState<Server | null>(null);
 
-    // Cargar servidores desde el JSON al montar el componente
+    // Cargar servidores y orden al montar el componente
     useEffect(() => {
-        loadServersFromJSON();
+        initializeApp();
     }, []);
 
-    const loadServersFromJSON = async () => {
+    const initializeApp = async () => {
+        try {
+            // Primero cargar el orden
+            const order = await loadServerOrder();
+            console.log('🔄 Loaded order in initializeApp:', order);
+            
+            // Luego cargar servidores usando el orden cargado
+            await loadServersFromJSON(order);
+        } catch (error) {
+            console.error('Error initializing app:', error);
+        }
+    };
+
+    const loadServersFromJSON = async (customOrder?: string[]) => {
         try {
             // Clean up any incomplete servers from previous sessions
             console.log('Cleaning up incomplete servers...');
@@ -104,15 +119,91 @@ const Home = () => {
                 })
             );
             
-            setServers(serverList);
+            // Usar el orden pasado como parámetro o el estado actual
+            const currentOrder = customOrder || serverOrder;
+            console.log('🎯 Using order for sorting:', currentOrder);
+            
+            // Aplicar orden personalizado a los servidores cargados
+            const orderedServers = sortServersByOrder(serverList, currentOrder);
+            setServers(orderedServers);
+
+            // Agregar nuevos servidores al final del orden si no están
+            const allServerNames = serverList.map(s => s.name);
+            const newServers = allServerNames.filter(name => !currentOrder.includes(name));
+            if (newServers.length > 0) {
+                const updatedOrder = [...currentOrder, ...newServers];
+                console.log('📝 Adding new servers to order:', newServers);
+                setServerOrder(updatedOrder);
+                saveServerOrder(updatedOrder);
+            } else if (customOrder) {
+                // Si se pasó un orden personalizado y no hay servidores nuevos, actualizar el estado
+                setServerOrder(customOrder);
+            }
         } catch (error) {
             console.error('Error loading servers from JSON:', error);
         }
     };
 
+    // Cargar orden de servidores desde el backend
+    const loadServerOrder = async (): Promise<string[]> => {
+        try {
+            const order: string[] = await invoke('get_server_order');
+            console.log('📋 Loaded server order:', order);
+            setServerOrder(order);
+            return order;
+        } catch (error) {
+            console.warn('Could not load server order, using default:', error);
+            setServerOrder([]);
+            return [];
+        }
+    };
+
+    // Guardar orden de servidores al backend
+    const saveServerOrder = async (order: string[]) => {
+        try {
+            await invoke('save_server_order', { order });
+            console.log('💾 Server order saved:', order);
+        } catch (error) {
+            console.error('Error saving server order:', error);
+        }
+    };
+
+    // Ordenar servidores según el orden personalizado
+    const sortServersByOrder = (serverList: Server[], customOrder: string[]): Server[] => {
+        return serverList.sort((a, b) => {
+            const orderA = customOrder.indexOf(a.name);
+            const orderB = customOrder.indexOf(b.name);
+
+            // Si ambos están en el orden personalizado, usar ese orden
+            if (orderA !== -1 && orderB !== -1) {
+                return orderA - orderB;
+            }
+
+            // Si solo uno está en el orden personalizado, ese va primero
+            if (orderA !== -1) return -1;
+            if (orderB !== -1) return 1;
+
+            // Si ninguno está en el orden personalizado, ordenar alfabéticamente
+            return a.name.localeCompare(b.name);
+        });
+    };
+
+    // Manejar reordenamiento por drag & drop
+    const handleReorder = async (newOrder: Server[]) => {
+        // Actualizar el estado inmediatamente para UI responsiva
+        setServers(newOrder);
+        
+        // Guardar el nuevo orden al backend
+        const newServerOrder = newOrder.map(server => server.name);
+        setServerOrder(newServerOrder);
+        await saveServerOrder(newServerOrder);
+        
+        console.log('🔄 Server order updated via drag & drop:', newServerOrder);
+    };
+
     const handleCreateServer = () => {
-        // Recargar servidores desde el JSON después de crear uno nuevo
-        loadServersFromJSON();
+        // Recargar servidores desde el JSON después de crear uno nuevo, manteniendo el orden actual
+        loadServersFromJSON(serverOrder);
     };
 
     // Removed handleStartStopServer - now handled directly by ServerCard
@@ -171,8 +262,14 @@ const Home = () => {
         try {
             // Use the new delete command that removes both config and storage folder
             await invoke('delete_server_completely', { name: serverToDelete.name });
-            // Reload servers from JSON after deletion
-            loadServersFromJSON();
+            
+            // Remove server from order
+            const updatedOrder = serverOrder.filter(name => name !== serverToDelete.name);
+            setServerOrder(updatedOrder);
+            await saveServerOrder(updatedOrder);
+            
+            // Reload servers from JSON after deletion, usando el orden actualizado
+            loadServersFromJSON(updatedOrder);
             console.log('Deleted server:', serverToDelete.name);
         } catch (error) {
             console.error('Error deleting server:', error);
@@ -227,26 +324,18 @@ const Home = () => {
                     </p>
                 </div>
             ) : (
-                <div className="p-4 pt-20 space-y-4 max-w-4xl mx-auto">
-                    {servers.map(server => (
-                        <ServerCard
-                            key={server.id}
-                            name={server.name}
-                            description={server.description}
-                            hasCustomImg={server.hasCustomImg}
-                            imgUrl={server.imgUrl}
-                            serverType={server.serverType}
-                            version={server.version}
-                            loaderVersion={server.loaderVersion}
-                            playerCount={server.playerCount}
-                            maxPlayers={server.maxPlayers}
-                            onEdit={() => handleEditServer(server.id)}
-                            onOpenFolder={() => handleOpenFolder(server.id)}
-                            onDelete={() => handleDeleteServer(server.id)}
-                            onClick={() => handleServerClick(server.id)}
+                <ScrollContainer className="p-4 pt-20" maxHeight="calc(100vh - 80px)">
+                    <div className="max-w-4xl mx-auto">
+                        <DraggableServerList
+                            servers={servers}
+                            onEdit={handleEditServer}
+                            onOpenFolder={handleOpenFolder}
+                            onDelete={handleDeleteServer}
+                            onClick={handleServerClick}
+                            onReorder={handleReorder}
                         />
-                    ))}
-                </div>
+                    </div>
+                </ScrollContainer>
             )}
 
             {/* Edit Server Modal */}
