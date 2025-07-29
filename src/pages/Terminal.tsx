@@ -1,5 +1,8 @@
 
-import React from 'react';
+// @deprecated This Terminal page component is deprecated. 
+// Terminal functionality is now integrated directly into ServerDetails.
+// This file is kept for compatibility but should not be used for new features.
+
 import { ArrowLeft } from 'lucide-react';
 import { AllayLayout } from "../components/common/AllayLayout";
 import { Terminal as TerminalComponent } from "../components/terminal/Terminal";

@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { AllayLayout } from "../components/common/AllayLayout";
 import { MinecraftMOTD } from "../components/common/MinecraftMOTD";
 import { useLocale } from '../contexts/LocaleContext';
 import { useServerState } from '../contexts/ServerStateContext';
 import { NavTittleButton } from "../components/navbar/NavTittleButton.tsx";
-import TerminalPage from "./Terminal";
+import { Terminal } from "../components/terminal/Terminal";
 
 interface Server {
     id: string;
@@ -38,22 +38,12 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
     const status = serverState.getServerStatus(server.name);
     const isOnline = status === 'online';
 
-    // If terminal tab is active, render terminal page
-    if (activeTab === 'terminal') {
-        return (
-            <TerminalPage 
-                server={server} 
-                onBack={() => setActiveTab('overview')} 
-            />
-        );
-    }
-
     return (
-        <div className="h-screen bg-surface">
+        <div className="h-screen bg-surface flex flex-col">
             <AllayLayout title="Server Details" />
             
-            {/* Header with Mini Server Card */}
-            <div className="p-4 flex items-center space-x-6">
+            {/* Header with Mini Server Card - Always visible */}
+            <div className="p-4 flex items-center space-x-6 flex-shrink-0">
                 <button
                     onClick={onBack}
                     className="p-2 rounded hover:bg-surface-hover transition-colors flex-shrink-0 hover:cursor-pointer text-text"
@@ -114,8 +104,8 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
                 </div>
             </div>
 
-            {/* Navigation Bar */}
-            <div className="px-4 pb-4">
+            {/* Navigation Bar - Always visible */}
+            <div className="px-4 pb-4 flex-shrink-0">
                 <nav className="flex justify-center items-center space-x-16 max-w-2xl mx-auto">
                     <NavTittleButton 
                         translationKey="overview"
@@ -140,19 +130,27 @@ const ServerDetails = ({ server, onBack }: ServerDetailsProps) => {
                 </nav>
             </div>
 
-            {/* Server Details Content */}
-            <div className="p-4 max-w-4xl mx-auto space-y-6">
-
-                {/* Placeholder content */}
-                <div className="bg-background rounded-lg shadow-sm border border-border p-6">
-                    <h2 className="text-lg font-semibold text-text mb-4">
-                        Server Information
-                    </h2>
-                    <p className="text-gray-500 text-sm">
-                        Server details content will be added here...
-                    </p>
+            {/* Conditional Content - Terminal takes full remaining space */}
+            {activeTab === 'terminal' ? (
+                <div className="flex-1 px-4 pb-4 overflow-hidden">
+                    <div className="h-full max-w-7xl mx-auto">
+                        <Terminal serverName={server.name} />
+                    </div>
                 </div>
-            </div>
+            ) : (
+                /* Server Details Content - Only shown when terminal is not active */
+                <div className="p-4 max-w-4xl mx-auto space-y-6">
+                    {/* Placeholder content */}
+                    <div className="bg-background rounded-lg shadow-sm border border-border p-6">
+                        <h2 className="text-lg font-semibold text-text mb-4">
+                            Server Information
+                        </h2>
+                        <p className="text-gray-500 text-sm">
+                            Server details content will be added here...
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

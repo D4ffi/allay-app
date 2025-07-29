@@ -55,7 +55,7 @@ export const Terminal = ({ serverName }: TerminalProps) => {
     const executeInternalCommand = async (command: string): Promise<string> => {
         const parts = command.split(' ');
         const cmd = parts[0].toLowerCase();
-        const args = parts.slice(1);
+        //const args = parts.slice(1);
 
         switch (cmd) {
             case 'a-clear':
@@ -77,9 +77,6 @@ export const Terminal = ({ serverName }: TerminalProps) => {
                     if (serverStatus === 'online') {
                         return `Server '${serverName}' is already running`;
                     }
-                    if (serverStatus === 'starting') {
-                        return `Server '${serverName}' is already starting`;
-                    }
                     
                     await serverState.startServer(serverName);
                     return `Starting server '${serverName}'...`;
@@ -91,9 +88,6 @@ export const Terminal = ({ serverName }: TerminalProps) => {
                 try {
                     if (serverStatus === 'offline') {
                         return `Server '${serverName}' is already stopped`;
-                    }
-                    if (serverStatus === 'stopping') {
-                        return `Server '${serverName}' is already stopping`;
                     }
                     
                     await serverState.stopServer(serverName, true); // graceful stop
@@ -232,9 +226,9 @@ All other commands are sent to the Minecraft server via RCON.`;
     };
 
     return (
-        <div className="h-full flex flex-col  border border-gray-700 rounded-lg overflow-hidden">
+        <div className="h-full flex flex-col bg-[#2B2B2B] border border-gray-700 rounded-lg overflow-hidden">
             {/* Terminal Header */}
-            <div className="bg-gray-600 border-b border-gray-700 px-4 py-2 flex items-center justify-between flex-shrink-0">
+            <div className="bg-[#2B2B2B] border-b border-gray-700 px-4 py-2 flex items-center justify-between flex-shrink-0">
                 <div className="text-gray-300 text-sm font-medium">
                     Terminal - {serverName}
                 </div>
@@ -259,7 +253,7 @@ All other commands are sent to the Minecraft server via RCON.`;
             <TerminalEditor lines={lines} serverName={serverName} />
 
             {/* Command Input */}
-            <div className="bg-gray-700 border-t border-gray-700 p-3 flex-shrink-0">
+            <div className="bg-[#2B2B2B] p-3 flex-shrink-0">
                 <form onSubmit={handleCommandSubmit} className="flex items-center space-x-2">
                     <span className="font-mono text-sm shrink-0 text-green-400">
                         $

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 interface TerminalLine {
     id: string;
@@ -12,7 +12,7 @@ interface TerminalEditorProps {
     serverName: string;
 }
 
-export const TerminalEditor = ({ lines, serverName }: TerminalEditorProps) => {
+export const TerminalEditor = ({ lines}: TerminalEditorProps) => {
     const [autoScroll, setAutoScroll] = useState(true);
     const editorRef = useRef<HTMLDivElement>(null);
 

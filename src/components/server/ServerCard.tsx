@@ -46,7 +46,7 @@ export const ServerCard: React.FC<ServerCardProps> = ({
     const handleStartStop = async () => {
         try {
             if (isOnline) {
-                await serverState.stopServer(name);
+                await serverState.stopServer(name, true);
             } else {
                 await serverState.startServer(name);
             }

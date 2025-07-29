@@ -7,7 +7,7 @@ interface ServerStateContextType {
     getServerStatus: (serverName: string) => ServerStatus;
     setServerStatus: (serverName: string, status: ServerStatus) => void;
     startServer: (serverName: string) => Promise<void>;
-    stopServer: (serverName: string) => Promise<void>;
+    stopServer: (serverName: string, b: boolean) => Promise<void>;
 }
 
 const ServerStateContext = createContext<ServerStateContextType | undefined>(undefined);
