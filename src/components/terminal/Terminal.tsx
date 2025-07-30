@@ -213,7 +213,7 @@ All other commands are sent to the Minecraft server via RCON.`;
         
         setIsRefreshing(true);
         
-        // Clear terminal and add welcome message
+        // Clear terminal and add a welcome message
         const welcomeLine: TerminalLine = {
             id: `welcome-${Date.now()}`,
             content: `Terminal instance for: ${serverName}`,
@@ -226,7 +226,7 @@ All other commands are sent to the Minecraft server via RCON.`;
     };
 
     return (
-        <div className="h-full flex flex-col bg-[#2B2B2B] border border-gray-700 rounded-lg overflow-hidden">
+        <div className="h-full flex flex-col bg-[#2B2B2B] border border-gray-900 rounded-lg overflow-hidden">
             {/* Terminal Header */}
             <div className="bg-[#2B2B2B] border-b border-gray-700 px-4 py-2 flex items-center justify-between flex-shrink-0">
                 <div className="text-gray-300 text-sm font-medium">

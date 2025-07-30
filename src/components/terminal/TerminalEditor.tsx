@@ -23,7 +23,7 @@ export const TerminalEditor = ({ lines}: TerminalEditorProps) => {
         }
     }, [lines, autoScroll]);
 
-    // Handle manual scrolling to detect if user wants to review history
+    // Handle manual scrolling to detect if a user wants to review history
     const handleScroll = () => {
         if (editorRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = editorRef.current;
@@ -80,7 +80,7 @@ export const TerminalEditor = ({ lines}: TerminalEditorProps) => {
                 ))}
             </div>
 
-            {/* Scroll to bottom indicator - Only shown when not auto-scrolling */}
+            {/* Scroll to the bottom indicator - Only shown when not auto-scrolling */}
             {!autoScroll && (
                 <button
                     onClick={() => {
