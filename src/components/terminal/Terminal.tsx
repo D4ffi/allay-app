@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useRconContext } from '../../contexts/RconContext';
 import { useServerState } from '../../contexts/ServerStateContext';
 import { TerminalEditor } from './TerminalEditor';
+import {HighlightedTerminalInput} from "./HighLightedTerminalInput.tsx";
 
 interface TerminalProps {
     serverName: string;
@@ -21,7 +22,6 @@ export const Terminal = ({ serverName }: TerminalProps) => {
     const [commandHistory, setCommandHistory] = useState<string[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
 
     // RCON integration via context (simplified)
     const rconContext = useRconContext();
@@ -29,14 +29,6 @@ export const Terminal = ({ serverName }: TerminalProps) => {
     // Server state integration
     const serverState = useServerState();
     const serverStatus = serverState.getServerStatus(serverName);
-
-
-    // Focus input when the component mounts
-    useEffect(() => {
-        if (inputRef.current) {
-            inputRef.current.focus();
-        }
-    }, []);
 
     // Add a welcome message on the mount
     useEffect(() => {
@@ -49,17 +41,13 @@ export const Terminal = ({ serverName }: TerminalProps) => {
         setLines([welcomeLine]);
     }, [serverName]);
 
-    // No auto-connection or status monitoring needed
-
     // Internal command handlers
     const executeInternalCommand = async (command: string): Promise<string> => {
         const parts = command.split(' ');
         const cmd = parts[0].toLowerCase();
-        //const args = parts.slice(1);
 
         switch (cmd) {
             case 'a-clear':
-                // Create a welcome line again
                 const welcomeLine: TerminalLine = {
                     id: `welcome-${Date.now()}`,
                     content: `Terminal instance for: ${serverName}`,
@@ -77,7 +65,7 @@ export const Terminal = ({ serverName }: TerminalProps) => {
                     if (serverStatus === 'online') {
                         return `Server '${serverName}' is already running`;
                     }
-                    
+
                     await serverState.startServer(serverName);
                     return `Starting server '${serverName}'...`;
                 } catch (error) {
@@ -89,7 +77,7 @@ export const Terminal = ({ serverName }: TerminalProps) => {
                     if (serverStatus === 'offline') {
                         return `Server '${serverName}' is already stopped`;
                     }
-                    
+
                     await serverState.stopServer(serverName, true); // graceful stop
                     return `Stopping server '${serverName}' gracefully...`;
                 } catch (error) {
@@ -107,13 +95,13 @@ a-help - Show this help message
 All other commands are sent to the Minecraft server via RCON.`;
 
             default:
-                return `Unknown internal command: ${cmd}. Type 'ahelp' for available commands.`;
+                return `Unknown internal command: ${cmd}. Type 'a-help' for available commands.`;
         }
     };
 
     const handleCommandSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!currentCommand.trim()) return;
 
         const command = currentCommand.trim();
@@ -131,7 +119,7 @@ All other commands are sent to the Minecraft server via RCON.`;
         // Add to history
         setCommandHistory(prev => [...prev, command]);
         setHistoryIndex(-1);
-        
+
         // Clear input
         setCurrentCommand('');
 
@@ -139,14 +127,14 @@ All other commands are sent to the Minecraft server via RCON.`;
         if (command.toLowerCase().startsWith('a')) {
             try {
                 const response = await executeInternalCommand(command);
-                
+
                 const responseLine: TerminalLine = {
                     id: `resp-${Date.now()}`,
                     content: response,
                     type: 'system',
                     timestamp: new Date()
                 };
-                
+
                 setLines(prev => [...prev, responseLine]);
             } catch (error) {
                 const errorLine: TerminalLine = {
@@ -155,21 +143,21 @@ All other commands are sent to the Minecraft server via RCON.`;
                     type: 'error',
                     timestamp: new Date()
                 };
-                
+
                 setLines(prev => [...prev, errorLine]);
             }
         } else {
             // Execute command via RCON (ephemeral connection)
             try {
                 const response = await rconContext.executeCommand(serverName, command);
-                
+
                 const responseLine: TerminalLine = {
                     id: `resp-${Date.now()}`,
                     content: response || 'Command executed successfully (no output)',
                     type: 'output',
                     timestamp: new Date()
                 };
-                
+
                 setLines(prev => [...prev, responseLine]);
             } catch (error) {
                 const errorLine: TerminalLine = {
@@ -178,7 +166,7 @@ All other commands are sent to the Minecraft server via RCON.`;
                     type: 'error',
                     timestamp: new Date()
                 };
-                
+
                 setLines(prev => [...prev, errorLine]);
             }
         }
@@ -210,9 +198,9 @@ All other commands are sent to the Minecraft server via RCON.`;
     // Handle refresh (clear terminal)
     const handleRefresh = async () => {
         if (isRefreshing) return;
-        
+
         setIsRefreshing(true);
-        
+
         // Clear terminal and add a welcome message
         const welcomeLine: TerminalLine = {
             id: `welcome-${Date.now()}`,
@@ -221,7 +209,7 @@ All other commands are sent to the Minecraft server via RCON.`;
             timestamp: new Date()
         };
         setLines([welcomeLine]);
-        
+
         setTimeout(() => setIsRefreshing(false), 500);
     };
 
@@ -236,15 +224,15 @@ All other commands are sent to the Minecraft server via RCON.`;
                     onClick={handleRefresh}
                     disabled={isRefreshing}
                     className={`p-1.5 rounded hover:bg-gray-500 transition-colors duration-200 ${
-                        isRefreshing 
-                            ? 'text-gray-500 cursor-not-allowed' 
+                        isRefreshing
+                            ? 'text-gray-500 cursor-not-allowed'
                             : 'text-gray-300 hover:text-white'
                     }`}
                     title="Clear terminal"
                 >
-                    <RefreshCw 
-                        size={16} 
-                        className={isRefreshing ? 'animate-spin' : ''} 
+                    <RefreshCw
+                        size={16}
+                        className={isRefreshing ? 'animate-spin' : ''}
                     />
                 </button>
             </div>
@@ -252,24 +240,15 @@ All other commands are sent to the Minecraft server via RCON.`;
             {/* Terminal Editor - Contains the scrollable content */}
             <TerminalEditor lines={lines} serverName={serverName} />
 
-            {/* Command Input */}
+            {/* Command Input - Now using HighlightedTerminalInput */}
             <div className="bg-[#2B2B2B] p-3 flex-shrink-0">
-                <form onSubmit={handleCommandSubmit} className="flex items-center space-x-2">
-                    <span className="font-mono text-sm shrink-0 text-green-400">
-                        $
-                    </span>
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        value={currentCommand}
-                        onChange={(e) => setCurrentCommand(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Enter Minecraft command..."
-                        className="flex-1 bg-transparent font-mono text-sm outline-none text-gray-300 placeholder-gray-500"
-                        spellCheck={false}
-                        autoComplete="off"
-                    />
-                </form>
+                <HighlightedTerminalInput
+                    value={currentCommand}
+                    onChange={setCurrentCommand}
+                    onKeyDown={handleKeyDown}
+                    onSubmit={handleCommandSubmit}
+                    placeholder="Enter Minecraft command..."
+                />
             </div>
         </div>
     );
