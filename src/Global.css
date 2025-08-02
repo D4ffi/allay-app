@@ -2,16 +2,16 @@
 
 /* Allay Theme Configuration */
 @theme {
-  /* Allay Light Theme (Default) */
-  --color-primary: #22c55e;
-  --color-primary-hover: #16a34a;
-  --color-primary-light: #dcfce7;
-  --color-secondary: #3b82f6;
-  --color-secondary-hover: #2563eb;
-  --color-secondary-light: #dbeafe;
-  --color-accent: #f59e0b;
-  --color-accent-hover: #d97706;
-  --color-accent-light: #fef3c7;
+  /* Allay Light Theme (Default) - Inspired by Minecraft Allay */
+  --color-primary: #40cadd;
+  --color-primary-hover: #3aa3b1;
+  --color-primary-light: #e0f7fa;
+  --color-secondary: #5aa3d9;
+  --color-secondary-hover: #4a88b8;
+  --color-secondary-light: #e3f2fd;
+  --color-accent: #7dd3fc;
+  --color-accent-hover: #0ea5e9;
+  --color-accent-light: #f0f9ff;
   --color-background: #ffffff;
   --color-surface: #f8fafc;
   --color-surface-hover: #f1f5f9;
@@ -29,6 +29,66 @@
   --color-success: #10b981;
   --color-success-hover: #059669;
   --color-success-light: #d1fae5;
+
+  /* Mod Loader Colors */
+  --color-loader-quilt: #9333ea;
+  --color-loader-quilt-hover: #7c2d12;
+  --color-loader-font-quilt: #ffffff;
+  --color-loader-fabric: #d4a574;
+  --color-loader-fabric-hover: #b8956a;
+  --color-loader-font-fabric: #1f2937;
+  --color-loader-forge: #6b7280;
+  --color-loader-forge-hover: #4b5563;
+  --color-loader-font-forge: #ffffff;
+  --color-loader-neoforge: #ea580c;
+  --color-loader-neoforge-hover: #c2410c;
+  --color-loader-font-neoforge: #ffffff;
+  --color-loader-paper: #16a34a;
+  --color-loader-paper-hover: #15803d;
+  --color-loader-font-paper: #ffffff;
+  --color-loader-vanilla: #64748b;
+  --color-loader-vanilla-hover: #475569;
+  --color-loader-font-vanilla: #ffffff;
+  --color-loader-bukkit: #fbbf24;
+  --color-loader-bukkit-hover: #f59e0b;
+  --color-loader-font-bukkit: #1f2937;
+  --color-loader-spigot: #f97316;
+  --color-loader-spigot-hover: #ea580c;
+  --color-loader-font-spigot: #ffffff;
+
+  /* Version Colors */
+  --color-version: #4f46e5;
+  --color-version-hover: #4338ca;
+  --color-version-font: #ffffff;
+  --color-version-stable: #059669;
+  --color-version-stable-hover: #047857;
+  --color-version-stable-font: #ffffff;
+  --color-version-snapshot: #dc2626;
+  --color-version-snapshot-hover: #b91c1c;
+  --color-version-snapshot-font: #ffffff;
+  --color-version-beta: #f59e0b;
+  --color-version-beta-hover: #d97706;
+  --color-version-beta-font: #1f2937;
+  --color-version-alpha: #9333ea;
+  --color-version-alpha-hover: #7c2d12;
+  --color-version-alpha-font: #ffffff;
+
+  /* Server Status Colors */
+  --color-status-online: #10b981;
+  --color-status-online-hover: #059669;
+  --color-status-online-font: #ffffff;
+  --color-status-offline: #6b7280;
+  --color-status-offline-hover: #4b5563;
+  --color-status-offline-font: #ffffff;
+  --color-status-starting: #f59e0b;
+  --color-status-starting-hover: #d97706;
+  --color-status-starting-font: #1f2937;
+  --color-status-stopping: #ef4444;
+  --color-status-stopping-hover: #dc2626;
+  --color-status-stopping-font: #ffffff;
+  --color-status-error: #dc2626;
+  --color-status-error-hover: #b91c1c;
+  --color-status-error-font: #ffffff;
 }
 
 @layer base {
@@ -37,12 +97,12 @@
     --color-primary: #40cadd;
     --color-primary-hover: #3aa3b1;
     --color-primary-light: #21616a;
-    --color-secondary: #0b8697;
-    --color-secondary-hover: #0c5c67;
-    --color-secondary-light: #0b424a;
-    --color-accent: #f59e0b;
-    --color-accent-hover: #d97706;
-    --color-accent-light: #451a03;
+    --color-secondary: #5aa3d9;
+    --color-secondary-hover: #4a88b8;
+    --color-secondary-light: #2d4a5a;
+    --color-accent: #7dd3fc;
+    --color-accent-hover: #0ea5e9;
+    --color-accent-light: #1e3a8a;
     --color-background: #192027;
     --color-surface: #222831;
     --color-surface-hover: #313743;
@@ -60,19 +120,79 @@
     --color-success: #65cbdd;
     --color-success-hover: #4a9faf;
     --color-success-light: #396c78;
+
+    /* Mod Loader Colors - Dark Theme */
+    --color-loader-quilt: #a855f7;
+    --color-loader-quilt-hover: #9333ea;
+    --color-loader-font-quilt: #ffffff;
+    --color-loader-fabric: #f3d5a7;
+    --color-loader-fabric-hover: #e6c893;
+    --color-loader-font-fabric: #1f2937;
+    --color-loader-forge: #9ca3af;
+    --color-loader-forge-hover: #6b7280;
+    --color-loader-font-forge: #1f2937;
+    --color-loader-neoforge: #fb923c;
+    --color-loader-neoforge-hover: #ea580c;
+    --color-loader-font-neoforge: #1f2937;
+    --color-loader-paper: #34d399;
+    --color-loader-paper-hover: #10b981;
+    --color-loader-font-paper: #1f2937;
+    --color-loader-vanilla: #94a3b8;
+    --color-loader-vanilla-hover: #64748b;
+    --color-loader-font-vanilla: #1f2937;
+    --color-loader-bukkit: #fcd34d;
+    --color-loader-bukkit-hover: #fbbf24;
+    --color-loader-font-bukkit: #1f2937;
+    --color-loader-spigot: #fb923c;
+    --color-loader-spigot-hover: #f97316;
+    --color-loader-font-spigot: #1f2937;
+
+    /* Version Colors - Dark Theme */
+    --color-version: #6366f1;
+    --color-version-hover: #4f46e5;
+    --color-version-font: #ffffff;
+    --color-version-stable: #10b981;
+    --color-version-stable-hover: #059669;
+    --color-version-stable-font: #ffffff;
+    --color-version-snapshot: #f87171;
+    --color-version-snapshot-hover: #ef4444;
+    --color-version-snapshot-font: #ffffff;
+    --color-version-beta: #fbbf24;
+    --color-version-beta-hover: #f59e0b;
+    --color-version-beta-font: #1f2937;
+    --color-version-alpha: #a855f7;
+    --color-version-alpha-hover: #9333ea;
+    --color-version-alpha-font: #ffffff;
+
+    /* Server Status Colors - Dark Theme */
+    --color-status-online: #34d399;
+    --color-status-online-hover: #10b981;
+    --color-status-online-font: #1f2937;
+    --color-status-offline: #9ca3af;
+    --color-status-offline-hover: #6b7280;
+    --color-status-offline-font: #1f2937;
+    --color-status-starting: #fbbf24;
+    --color-status-starting-hover: #f59e0b;
+    --color-status-starting-font: #1f2937;
+    --color-status-stopping: #f87171;
+    --color-status-stopping-hover: #ef4444;
+    --color-status-stopping-font: #ffffff;
+    --color-status-error: #f87171;
+    --color-status-error-hover: #ef4444;
+    --color-status-error-font: #ffffff;
   }
 
   /* Allay Light Theme (Explicit) */
   [data-theme='allay'] {
-    --color-primary: #22c55e;
-    --color-primary-hover: #16a34a;
-    --color-primary-light: #dcfce7;
-    --color-secondary: #3b82f6;
-    --color-secondary-hover: #2563eb;
-    --color-secondary-light: #dbeafe;
-    --color-accent: #f59e0b;
-    --color-accent-hover: #d97706;
-    --color-accent-light: #fef3c7;
+    --color-primary: #40cadd;
+    --color-primary-hover: #3aa3b1;
+    --color-primary-light: #e0f7fa;
+    --color-secondary: #5aa3d9;
+    --color-secondary-hover: #4a88b8;
+    --color-secondary-light: #e3f2fd;
+    --color-accent: #7dd3fc;
+    --color-accent-hover: #0ea5e9;
+    --color-accent-light: #f0f9ff;
     --color-background: #ffffff;
     --color-surface: #f8fafc;
     --color-surface-hover: #f1f5f9;
@@ -90,6 +210,336 @@
     --color-success: #10b981;
     --color-success-hover: #059669;
     --color-success-light: #d1fae5;
+
+    /* Mod Loader Colors - Light Theme */
+    --color-loader-quilt: #9333ea;
+    --color-loader-quilt-hover: #7c2d12;
+    --color-loader-font-quilt: #ffffff;
+    --color-loader-fabric: #d4a574;
+    --color-loader-fabric-hover: #b8956a;
+    --color-loader-font-fabric: #1f2937;
+    --color-loader-forge: #6b7280;
+    --color-loader-forge-hover: #4b5563;
+    --color-loader-font-forge: #ffffff;
+    --color-loader-neoforge: #ea580c;
+    --color-loader-neoforge-hover: #c2410c;
+    --color-loader-font-neoforge: #ffffff;
+    --color-loader-paper: #16a34a;
+    --color-loader-paper-hover: #15803d;
+    --color-loader-font-paper: #ffffff;
+    --color-loader-vanilla: #64748b;
+    --color-loader-vanilla-hover: #475569;
+    --color-loader-font-vanilla: #ffffff;
+    --color-loader-bukkit: #fbbf24;
+    --color-loader-bukkit-hover: #f59e0b;
+    --color-loader-font-bukkit: #1f2937;
+    --color-loader-spigot: #f97316;
+    --color-loader-spigot-hover: #ea580c;
+    --color-loader-font-spigot: #ffffff;
+
+    /* Version Colors - Light Theme */
+    --color-version: #4f46e5;
+    --color-version-hover: #4338ca;
+    --color-version-font: #ffffff;
+    --color-version-stable: #059669;
+    --color-version-stable-hover: #047857;
+    --color-version-stable-font: #ffffff;
+    --color-version-snapshot: #dc2626;
+    --color-version-snapshot-hover: #b91c1c;
+    --color-version-snapshot-font: #ffffff;
+    --color-version-beta: #f59e0b;
+    --color-version-beta-hover: #d97706;
+    --color-version-beta-font: #1f2937;
+    --color-version-alpha: #9333ea;
+    --color-version-alpha-hover: #7c2d12;
+    --color-version-alpha-font: #ffffff;
+
+    /* Server Status Colors - Light Theme */
+    --color-status-online: #10b981;
+    --color-status-online-hover: #059669;
+    --color-status-online-font: #ffffff;
+    --color-status-offline: #6b7280;
+    --color-status-offline-hover: #4b5563;
+    --color-status-offline-font: #ffffff;
+    --color-status-starting: #f59e0b;
+    --color-status-starting-hover: #d97706;
+    --color-status-starting-font: #1f2937;
+    --color-status-stopping: #ef4444;
+    --color-status-stopping-hover: #dc2626;
+    --color-status-stopping-font: #ffffff;
+    --color-status-error: #dc2626;
+    --color-status-error-hover: #b91c1c;
+    --color-status-error-font: #ffffff;
+  }
+
+  /* Enderman Theme - Dark purple/teal inspired by Enderman mob */
+  [data-theme='enderman'] {
+    --color-primary: #8b5cf6; /* Purple primary */
+    --color-primary-hover: #7c3aed;
+    --color-primary-light: #3c1d4a;
+    --color-secondary: #06b6d4; /* Teal secondary (ender pearl) */
+    --color-secondary-hover: #0891b2;
+    --color-secondary-light: #164e63;
+    --color-accent: #10b981; /* Green accent (ender eye) */
+    --color-accent-hover: #059669;
+    --color-accent-light: #064e3b;
+    --color-background: #1e1b2e; /* Deep purple background */
+    --color-surface: #2d2438;
+    --color-surface-hover: #3d2f4a;
+    --color-border: #4b3d5c;
+    --color-border-hover: #5a4a6e;
+    --color-text: #e2d7f0; /* Light purple text */
+    --color-text-secondary: #b794c7;
+    --color-text-muted: #8b71a0;
+    --color-danger: #f43f5e; /* Pink danger */
+    --color-danger-hover: #e11d48;
+    --color-danger-light: #4c1d24;
+    --color-warning: #f59e0b;
+    --color-warning-hover: #d97706;
+    --color-warning-light: #451a03;
+    --color-success: #10b981; /* Teal success (ender pearl) */
+    --color-success-hover: #059669;
+    --color-success-light: #064e3b;
+
+    /* Mod Loader Colors - Enderman Theme */
+    --color-loader-quilt: #a855f7;
+    --color-loader-quilt-hover: #9333ea;
+    --color-loader-font-quilt: #ffffff;
+    --color-loader-fabric: #8b5cf6;
+    --color-loader-fabric-hover: #7c3aed;
+    --color-loader-font-fabric: #ffffff;
+    --color-loader-forge: #64748b;
+    --color-loader-forge-hover: #475569;
+    --color-loader-font-forge: #ffffff;
+    --color-loader-neoforge: #06b6d4;
+    --color-loader-neoforge-hover: #0891b2;
+    --color-loader-font-neoforge: #ffffff;
+    --color-loader-paper: #10b981;
+    --color-loader-paper-hover: #059669;
+    --color-loader-font-paper: #ffffff;
+    --color-loader-vanilla: #8b71a0;
+    --color-loader-vanilla-hover: #6b5b7f;
+    --color-loader-font-vanilla: #ffffff;
+    --color-loader-bukkit: #f59e0b;
+    --color-loader-bukkit-hover: #d97706;
+    --color-loader-font-bukkit: #1e1b2e;
+    --color-loader-spigot: #f43f5e;
+    --color-loader-spigot-hover: #e11d48;
+    --color-loader-font-spigot: #ffffff;
+
+    /* Version Colors - Enderman Theme */
+    --color-version: #8b5cf6;
+    --color-version-hover: #7c3aed;
+    --color-version-font: #ffffff;
+    --color-version-stable: #10b981;
+    --color-version-stable-hover: #059669;
+    --color-version-stable-font: #ffffff;
+    --color-version-snapshot: #f43f5e;
+    --color-version-snapshot-hover: #e11d48;
+    --color-version-snapshot-font: #ffffff;
+    --color-version-beta: #f59e0b;
+    --color-version-beta-hover: #d97706;
+    --color-version-beta-font: #1e1b2e;
+    --color-version-alpha: #a855f7;
+    --color-version-alpha-hover: #9333ea;
+    --color-version-alpha-font: #ffffff;
+
+    /* Server Status Colors - Enderman Theme */
+    --color-status-online: #10b981;
+    --color-status-online-hover: #059669;
+    --color-status-online-font: #ffffff;
+    --color-status-offline: #8b71a0;
+    --color-status-offline-hover: #6b5b7f;
+    --color-status-offline-font: #ffffff;
+    --color-status-starting: #f59e0b;
+    --color-status-starting-hover: #d97706;
+    --color-status-starting-font: #1e1b2e;
+    --color-status-stopping: #f43f5e;
+    --color-status-stopping-hover: #e11d48;
+    --color-status-stopping-font: #ffffff;
+    --color-status-error: #f43f5e;
+    --color-status-error-hover: #e11d48;
+    --color-status-error-font: #ffffff;
+  }
+
+  /* Emerald Obsidian Theme - Inspired by Opera GX Purple Haze */
+  [data-theme='emerald-obsidian'] {
+    --color-primary: #10d9c4; /* Emerald green primary */
+    --color-primary-hover: #0db7a6;
+    --color-primary-light: #134e4a;
+    --color-secondary: #a855f7; /* Purple secondary */
+    --color-secondary-hover: #9333ea;
+    --color-secondary-light: #581c87;
+    --color-accent: #06ffa5; /* Bright emerald accent */
+    --color-accent-hover: #00e694;
+    --color-accent-light: #022c22;
+    --color-background: #1b042b; /* Deep obsidian background */
+    --color-surface: #1a1325;
+    --color-surface-hover: #251932;
+    --color-border: #3d2f4a;
+    --color-border-hover: #4c3b5c;
+    --color-text: #e2fffa; /* Light mint text */
+    --color-text-secondary: #a7f3d0;
+    --color-text-muted: #6ee7b7;
+    --color-danger: #ec4899; /* Pink danger */
+    --color-danger-hover: #db2777;
+    --color-danger-light: #4c1d24;
+    --color-warning: #fbbf24; /* Gold warning */
+    --color-warning-hover: #f59e0b;
+    --color-warning-light: #451a03;
+    --color-success: #10d9c4; /* Emerald success */
+    --color-success-hover: #0db7a6;
+    --color-success-light: #134e4a;
+
+    /* Mod Loader Colors - Emerald Obsidian Theme */
+    --color-loader-quilt: #c084fc;
+    --color-loader-quilt-hover: #a855f7;
+    --color-loader-font-quilt: #0f0a0f;
+    --color-loader-fabric: #10d9c4;
+    --color-loader-fabric-hover: #0db7a6;
+    --color-loader-font-fabric: #0f0a0f;
+    --color-loader-forge: #6b7280;
+    --color-loader-forge-hover: #4b5563;
+    --color-loader-font-forge: #ffffff;
+    --color-loader-neoforge: #a855f7;
+    --color-loader-neoforge-hover: #9333ea;
+    --color-loader-font-neoforge: #ffffff;
+    --color-loader-paper: #10d9c4;
+    --color-loader-paper-hover: #0db7a6;
+    --color-loader-font-paper: #0f0a0f;
+    --color-loader-vanilla: #6ee7b7;
+    --color-loader-vanilla-hover: #34d399;
+    --color-loader-font-vanilla: #0f0a0f;
+    --color-loader-bukkit: #fbbf24;
+    --color-loader-bukkit-hover: #f59e0b;
+    --color-loader-font-bukkit: #0f0a0f;
+    --color-loader-spigot: #ec4899;
+    --color-loader-spigot-hover: #db2777;
+    --color-loader-font-spigot: #ffffff;
+
+    /* Version Colors - Emerald Obsidian Theme */
+    --color-version: #a855f7;
+    --color-version-hover: #9333ea;
+    --color-version-font: #ffffff;
+    --color-version-stable: #10d9c4;
+    --color-version-stable-hover: #0db7a6;
+    --color-version-stable-font: #0f0a0f;
+    --color-version-snapshot: #ec4899;
+    --color-version-snapshot-hover: #db2777;
+    --color-version-snapshot-font: #ffffff;
+    --color-version-beta: #fbbf24;
+    --color-version-beta-hover: #f59e0b;
+    --color-version-beta-font: #0f0a0f;
+    --color-version-alpha: #c084fc;
+    --color-version-alpha-hover: #a855f7;
+    --color-version-alpha-font: #ffffff;
+
+    /* Server Status Colors - Emerald Obsidian Theme */
+    --color-status-online: #10d9c4;
+    --color-status-online-hover: #0db7a6;
+    --color-status-online-font: #0f0a0f;
+    --color-status-offline: #6ee7b7;
+    --color-status-offline-hover: #34d399;
+    --color-status-offline-font: #0f0a0f;
+    --color-status-starting: #fbbf24;
+    --color-status-starting-hover: #f59e0b;
+    --color-status-starting-font: #0f0a0f;
+    --color-status-stopping: #ec4899;
+    --color-status-stopping-hover: #db2777;
+    --color-status-stopping-font: #ffffff;
+    --color-status-error: #ec4899;
+    --color-status-error-hover: #db2777;
+    --color-status-error-font: #ffffff;
+  }
+
+  /* Copper Golem Theme - Inspired by Minecraft Copper Golem */
+  [data-theme='copper-golem'] {
+    --color-primary: #d1765d; /* Copper primary */
+    --color-primary-hover: #c16651;
+    --color-primary-light: #4a2823;
+    --color-secondary: #6e9d6c; /* Oxidized copper secondary */
+    --color-secondary-hover: #5a8258;
+    --color-secondary-light: #2d4a2b;
+    --color-accent: #f4a261; /* Warm copper accent */
+    --color-accent-hover: #e76f51;
+    --color-accent-light: #3d2f1f;
+    --color-background: #2c1810; /* Dark copper background */
+    --color-surface: #3d251a;
+    --color-surface-hover: #4a2f22;
+    --color-border: #5a453a;
+    --color-border-hover: #6b5449;
+    --color-text: #f4e4d6; /* Warm cream text */
+    --color-text-secondary: #d4b8a0;
+    --color-text-muted: #a08970;
+    --color-danger: #e76f51; /* Copper red danger */
+    --color-danger-hover: #d15a3f;
+    --color-danger-light: #3d2218;
+    --color-warning: #f4a261; /* Warm copper warning */
+    --color-warning-hover: #e0944f;
+    --color-warning-light: #3d2f1f;
+    --color-success: #6e9d6c; /* Oxidized copper success */
+    --color-success-hover: #5a8258;
+    --color-success-light: #2d4a2b;
+
+    /* Mod Loader Colors - Copper Golem Theme */
+    --color-loader-quilt: #8e5a3c;
+    --color-loader-quilt-hover: #7a4d32;
+    --color-loader-font-quilt: #ffffff;
+    --color-loader-fabric: #d1765d;
+    --color-loader-fabric-hover: #c16651;
+    --color-loader-font-fabric: #ffffff;
+    --color-loader-forge: #6b5449;
+    --color-loader-forge-hover: #5a453a;
+    --color-loader-font-forge: #ffffff;
+    --color-loader-neoforge: #6e9d6c;
+    --color-loader-neoforge-hover: #5a8258;
+    --color-loader-font-neoforge: #ffffff;
+    --color-loader-paper: #6e9d6c;
+    --color-loader-paper-hover: #5a8258;
+    --color-loader-font-paper: #ffffff;
+    --color-loader-vanilla: #a08970;
+    --color-loader-vanilla-hover: #8a7560;
+    --color-loader-font-vanilla: #ffffff;
+    --color-loader-bukkit: #f4a261;
+    --color-loader-bukkit-hover: #e0944f;
+    --color-loader-font-bukkit: #2c1810;
+    --color-loader-spigot: #e76f51;
+    --color-loader-spigot-hover: #d15a3f;
+    --color-loader-font-spigot: #ffffff;
+
+    /* Version Colors - Copper Golem Theme */
+    --color-version: #d1765d;
+    --color-version-hover: #c16651;
+    --color-version-font: #ffffff;
+    --color-version-stable: #6e9d6c;
+    --color-version-stable-hover: #5a8258;
+    --color-version-stable-font: #ffffff;
+    --color-version-snapshot: #e76f51;
+    --color-version-snapshot-hover: #d15a3f;
+    --color-version-snapshot-font: #ffffff;
+    --color-version-beta: #f4a261;
+    --color-version-beta-hover: #e0944f;
+    --color-version-beta-font: #2c1810;
+    --color-version-alpha: #8e5a3c;
+    --color-version-alpha-hover: #7a4d32;
+    --color-version-alpha-font: #ffffff;
+
+    /* Server Status Colors - Copper Golem Theme */
+    --color-status-online: #6e9d6c;
+    --color-status-online-hover: #5a8258;
+    --color-status-online-font: #ffffff;
+    --color-status-offline: #a08970;
+    --color-status-offline-hover: #8a7560;
+    --color-status-offline-font: #ffffff;
+    --color-status-starting: #f4a261;
+    --color-status-starting-hover: #e0944f;
+    --color-status-starting-font: #2c1810;
+    --color-status-stopping: #e76f51;
+    --color-status-stopping-hover: #d15a3f;
+    --color-status-stopping-font: #ffffff;
+    --color-status-error: #e76f51;
+    --color-status-error-hover: #d15a3f;
+    --color-status-error-font: #ffffff;
   }
 }
 

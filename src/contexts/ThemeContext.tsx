@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type Theme = 'allay' | 'allay-dark';
+export type Theme = 'allay' | 'allay-dark' | 'enderman' | 'emerald-obsidian' | 'copper-golem';
 
 interface ThemeContextType {
   theme: Theme;
@@ -18,7 +18,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check if there's a saved theme in localStorage
     const savedTheme = localStorage.getItem('allay-theme') as Theme;
-    if (savedTheme && (savedTheme === 'allay' || savedTheme === 'allay-dark')) {
+    if (savedTheme && (savedTheme === 'allay' || savedTheme === 'allay-dark' || savedTheme === 'enderman' || savedTheme === 'emerald-obsidian' || savedTheme === 'copper-golem')) {
       return savedTheme;
     }
     
@@ -35,7 +35,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'allay' ? 'allay-dark' : 'allay');
+    setTheme(prev => {
+      if (prev === 'allay') return 'allay-dark';
+      if (prev === 'allay-dark') return 'enderman';
+      if (prev === 'enderman') return 'emerald-obsidian';
+      if (prev === 'emerald-obsidian') return 'copper-golem';
+      return 'allay';
+    });
   };
 
   const value: ThemeContextType = {
